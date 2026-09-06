@@ -1,0 +1,2956 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#063B3F">
+    <meta name="description" content="AquaShare V2 - Shared community groundwater pump scheduling and water tracking for rural farmers.">
+    <title>AquaShare V2 — Community Groundwater</title>
+
+    <style>
+        /* ====================================================================
+           AQUASHARE V2 - EARTH & WATER DESIGN SYSTEM (OUTDOOR SUNLIGHT READY)
+           Zero external fonts, zero external CSS, zero frameworks, 100% self-contained
+           ==================================================================== */
+        :root {
+            /* Brand Identity Colors */
+            --forest-deep: #063B3F;
+            --forest-mid: #0B4F54;
+            --forest-surface: #0E5E64;
+            --aqua-bright: #14B8A6;
+            --aqua-dark: #0D9488;
+            --aqua-tint: #E6FAF7;
+            --aqua-glow: rgba(20, 184, 166, 0.25);
+
+            /* Earth & Sunlight Canvas */
+            --canvas-bg: #F4EFE6;
+            --canvas-card: #FFFFFF;
+            --canvas-subtle: #F9F7F2;
+
+            /* High-Contrast Sunlight Legibility */
+            --ink-primary: #0F172A;
+            --ink-secondary: #334155;
+            --ink-muted: #64748B;
+            --ink-inverse: #FFFFFF;
+
+            /* Crisp High-Contrast Borders */
+            --border-crisp: #CBD5E1;
+            --border-accent: #94D8CE;
+            --border-focus: #0D9488;
+
+            /* High-Visibility Community Statuses */
+            --status-avail-text: #065F46;
+            --status-avail-bg: #ECFDF5;
+            --status-avail-border: #10B981;
+
+            --status-active-text: #92400E;
+            --status-active-bg: #FEF3C7;
+            --status-active-border: #F59E0B;
+
+            --status-booked-text: #475569;
+            --status-booked-bg: #F1F5F9;
+            --status-booked-border: #CBD5E1;
+
+            --status-broken-text: #991B1B;
+            --status-broken-bg: #FEE2E2;
+            --status-broken-border: #EF4444;
+
+            --quota-danger-bg: #DC2626;
+
+            /* Radii & Shadows */
+            --radius-xs: 6px;
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-pill: 9999px;
+
+            --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.08);
+            --shadow-card: 0 4px 14px rgba(6, 59, 63, 0.08);
+            --shadow-floating: 0 10px 25px rgba(6, 59, 63, 0.18);
+
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #082124;
+            font-family: var(--font-stack);
+            color: var(--ink-primary);
+            line-height: 1.4;
+            overflow: hidden;
+        }
+
+        /* Responsive Centered PWA Shell */
+        .app-shell {
+            width: 100%;
+            max-width: 428px;
+            height: 100%;
+            margin: 0 auto;
+            background-color: var(--canvas-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* -------------------------------------------------------------
+           HIGH-CONTRAST GLOBAL QUOTA LIMIT BANNER (>= 50,000 L)
+           ------------------------------------------------------------- */
+        .global-water-banner {
+            display: none;
+            background-color: var(--quota-danger-bg);
+            color: #FFFFFF;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.02em;
+            box-shadow: 0 3px 10px rgba(220, 38, 38, 0.35);
+            z-index: 100;
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .global-water-banner.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* -------------------------------------------------------------
+           POLISHED HEADER: BRAND & LIVE REALTIME STATUS
+           ------------------------------------------------------------- */
+        .app-header {
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--aqua-bright);
+            box-shadow: var(--shadow-card);
+            flex-shrink: 0;
+            z-index: 90;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--aqua-bright), var(--forest-surface));
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 19px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            color: #FFFFFF;
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            color: var(--aqua-bright);
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sync-badge {
+            background-color: rgba(20, 184, 166, 0.18);
+            border: 1px solid rgba(20, 184, 166, 0.5);
+            color: #FFFFFF;
+            padding: 6px 11px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sync-badge:hover {
+            background-color: rgba(20, 184, 166, 0.3);
+        }
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--aqua-bright);
+            box-shadow: 0 0 8px var(--aqua-bright);
+            animation: pulseGlow 2s infinite;
+        }
+        .sync-badge.offline .sync-dot {
+            background-color: #F59E0B;
+            box-shadow: none;
+            animation: none;
+        }
+
+        .admin-trigger-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .admin-trigger-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        /* -------------------------------------------------------------
+           MAIN SCROLLABLE CONTENT VIEW
+           ------------------------------------------------------------- */
+        .content-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 16px 90px 16px;
+        }
+
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-panel.active {
+            display: flex;
+        }
+
+        /* -------------------------------------------------------------
+           COMMUNITY RESERVOIR GAUGE (NOT A GENERIC PROGRESS BAR)
+           ------------------------------------------------------------- */
+        .water-gauge-card {
+            background: linear-gradient(180deg, #FFFFFF 0%, var(--canvas-subtle) 100%);
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 18px 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .gauge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .gauge-label-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gauge-eyebrow {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: var(--forest-mid);
+            text-transform: uppercase;
+        }
+
+        .gauge-headline {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--forest-deep);
+            line-height: 1.1;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .gauge-subtext {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-muted);
+            margin-top: 2px;
+        }
+
+        .gauge-status-tag {
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .gauge-status-tag.safe {
+            background-color: var(--status-avail-bg);
+            color: var(--status-avail-text);
+            border: 1px solid var(--status-avail-border);
+        }
+        .gauge-status-tag.watch {
+            background-color: var(--status-active-bg);
+            color: var(--status-active-text);
+            border: 1px solid var(--status-active-border);
+        }
+        .gauge-status-tag.limit {
+            background-color: var(--status-broken-bg);
+            color: var(--status-broken-text);
+            border: 1px solid var(--status-broken-border);
+        }
+
+        /* Reservoir Depth Graphic */
+        .reservoir-visual {
+            height: 26px;
+            background-color: #E2E8F0;
+            border-radius: 8px;
+            border: 2px solid var(--border-crisp);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .reservoir-liquid {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #14B8A6 0%, #0D9488 60%, #063B3F 100%);
+            border-radius: 4px 0 0 4px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .reservoir-liquid.limit-state {
+            background: linear-gradient(90deg, #F59E0B 0%, #DC2626 100%);
+        }
+
+        .reservoir-ticks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 4px;
+            pointer-events: none;
+        }
+        .res-tick {
+            width: 1px;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.15);
+        }
+
+        .reservoir-caption {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--ink-secondary);
+        }
+
+        /* -------------------------------------------------------------
+           STEP-BY-STEP GUIDED BOOKING EXPERIENCE
+           ------------------------------------------------------------- */
+        .booking-step-card {
+            background-color: var(--canvas-card);
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 18px 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .step-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-num-pill {
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            padding: 4px 9px;
+            border-radius: var(--radius-pill);
+        }
+
+        .step-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--forest-deep);
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+        }
+
+        /* Farmer Name Input with Avatar */
+        .farmer-input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .farmer-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .farmer-input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--ink-muted);
+            pointer-events: none;
+        }
+
+        .large-farmer-input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px 0 44px;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink-primary);
+            background-color: #FFFFFF;
+            transition: all 0.2s ease;
+        }
+        .large-farmer-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--aqua-glow);
+        }
+
+        .recent-farmers-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .farmer-chip {
+            background-color: var(--aqua-tint);
+            border: 1px solid var(--border-accent);
+            color: var(--forest-deep);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .farmer-chip:hover, .farmer-chip:active {
+            background-color: var(--aqua-bright);
+            color: #FFFFFF;
+            transform: scale(0.97);
+        }
+
+        /* PUMP SELECTION CARDS */
+        .pumps-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pump-card {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .pump-card:hover {
+            border-color: var(--forest-mid);
+            transform: translateY(-1px);
+        }
+        .pump-card.selected {
+            border-color: var(--forest-deep);
+            background-color: var(--aqua-tint);
+            box-shadow: 0 0 0 2px var(--forest-deep);
+        }
+
+        .pump-card.broken {
+            background-color: var(--status-broken-bg);
+            border-color: var(--status-broken-border);
+            cursor: not-allowed;
+            opacity: 0.92;
+        }
+
+        .pump-info-col {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .pump-id-tag {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .pump-card.broken .pump-id-tag {
+            background-color: var(--status-broken-border);
+        }
+
+        .pump-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pump-name-text {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ink-primary);
+        }
+
+        .pump-location-sub {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-muted);
+        }
+
+        .pump-status-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 5px 11px;
+            border-radius: var(--radius-pill);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pump-status-badge.available {
+            background-color: var(--status-avail-bg);
+            color: var(--status-avail-text);
+            border: 1px solid var(--status-avail-border);
+        }
+        .pump-status-badge.active {
+            background-color: var(--status-active-bg);
+            color: var(--status-active-text);
+            border: 1px solid var(--status-active-border);
+            animation: pulseGlow 2s infinite;
+        }
+        .pump-status-badge.booked {
+            background-color: var(--status-booked-bg);
+            color: var(--status-booked-text);
+            border: 1px solid var(--status-booked-border);
+        }
+        .pump-status-badge.broken {
+            background-color: var(--status-broken-bg);
+            color: var(--status-broken-text);
+            border: 1px solid var(--status-broken-border);
+        }
+
+        /* DATE & TIME SELECTION */
+        .date-picker-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--canvas-subtle);
+            border: 1px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+        }
+
+        .date-picker-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--forest-mid);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .clean-date-input {
+            height: 42px;
+            padding: 0 12px;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink-primary);
+            background-color: #FFFFFF;
+            cursor: pointer;
+        }
+        .clean-date-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .slot-btn {
+            min-height: 56px;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            background-color: #FFFFFF;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .slot-btn:hover:not(:disabled) {
+            border-color: var(--border-focus);
+            background-color: var(--aqua-tint);
+        }
+        .slot-btn.selected {
+            border-color: var(--forest-deep);
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            box-shadow: 0 3px 10px rgba(6, 59, 63, 0.25);
+        }
+        .slot-btn.selected .slot-status-label {
+            color: var(--aqua-bright);
+        }
+
+        .slot-btn.booked {
+            background-color: #F1F5F9;
+            border-color: #E2E8F0;
+            color: #94A3B8;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+        .slot-btn.past {
+            background-color: #F8FAFC;
+            border-color: #E2E8F0;
+            color: #CBD5E1;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+        .slot-btn.yours {
+            background-color: #E0F2FE;
+            border-color: #38BDF8;
+            color: #0369A1;
+        }
+
+        .slot-time-text {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .slot-status-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 3px;
+        }
+
+        /* STICKY BOTTOM CONFIRMATION DOCK */
+        .sticky-booking-dock {
+            position: fixed;
+            bottom: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 428px;
+            background-color: var(--canvas-card);
+            border-top: 2px solid var(--border-crisp);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.14);
+            z-index: 80;
+        }
+
+        .dock-summary {
+            display: flex;
+            flex-direction: column;
+            max-width: 58%;
+        }
+
+        .dock-pump-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--forest-deep);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dock-slot-desc {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-muted);
+        }
+
+        .btn-primary-confirm {
+            height: 52px;
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            border: 2px solid var(--forest-deep);
+            border-radius: var(--radius-md);
+            padding: 0 18px;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.2s ease;
+        }
+        .btn-primary-confirm:hover:not(:disabled) {
+            background-color: var(--forest-mid);
+            transform: translateY(-1px);
+        }
+        .btn-primary-confirm:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-primary-confirm:disabled {
+            background-color: #CBD5E1;
+            border-color: #CBD5E1;
+            color: #64748B;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* -------------------------------------------------------------
+           SCHEDULE VIEW: TIMETABLE & RIGHT NOW EXPERIENCE
+           ------------------------------------------------------------- */
+        .now-live-strip {
+            background-color: var(--aqua-tint);
+            border: 2px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .now-status-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .now-eyebrow {
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: var(--forest-deep);
+            text-transform: uppercase;
+        }
+
+        .now-active-info {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-clock-badge {
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 0.04em;
+        }
+
+        /* Timetable Card */
+        .timeline-card {
+            background-color: var(--canvas-card);
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow: hidden;
+        }
+
+        .timeline-time-axis {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-bottom: 2px solid var(--border-crisp);
+            padding-bottom: 8px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .timeline-pump-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 12px;
+        }
+        .timeline-pump-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .row-pump-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .row-pump-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--forest-deep);
+        }
+
+        .timeline-track {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            background-color: #F1F5F9;
+            border-radius: var(--radius-xs);
+            padding: 4px;
+            min-height: 48px;
+        }
+
+        .timeline-slot-cell {
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2px 4px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            text-align: center;
+            overflow: hidden;
+            border: 1px solid var(--border-crisp);
+        }
+
+        .timeline-slot-cell.booked-block {
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            border: 1px solid var(--forest-deep);
+        }
+
+        .timeline-slot-cell.active-block {
+            background-color: var(--status-active-bg);
+            color: var(--status-active-text);
+            border: 2px solid var(--status-active-border);
+            font-weight: 900;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .timeline-slot-cell.completed-block {
+            background-color: #E2E8F0;
+            color: #64748B;
+            border: 1px solid #CBD5E1;
+            opacity: 0.85;
+        }
+
+        .timeline-slot-cell.maintenance-block {
+            background-color: var(--status-broken-bg);
+            color: var(--status-broken-text);
+            border: 1px solid var(--status-broken-border);
+            grid-column: 1 / -1;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+        }
+
+        /* Schedule Reservations List with Meter Logging */
+        .schedule-header-card {
+            background-color: var(--canvas-card);
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .schedule-bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .booking-item-card {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .booking-item-card:hover {
+            border-color: var(--forest-mid);
+        }
+
+        .booking-card-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .booking-card-pump {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--forest-deep);
+        }
+
+        .booking-card-details {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink-muted);
+        }
+
+        .btn-action-meter {
+            height: 42px;
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0 14px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-action-meter:hover {
+            background-color: var(--forest-mid);
+        }
+        .btn-action-meter:active {
+            transform: scale(0.97);
+        }
+
+        .logged-badge {
+            background-color: var(--status-avail-bg);
+            color: var(--status-avail-text);
+            border: 1px solid var(--status-avail-border);
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        /* -------------------------------------------------------------
+           REPORT / COMMUNITY HELP CENTER
+           ------------------------------------------------------------- */
+        .report-choice-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .report-big-btn {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        .report-big-btn:hover {
+            border-color: var(--status-broken-border);
+            background-color: #FFF5F5;
+            transform: translateY(-1px);
+        }
+        .report-big-btn.overrun:hover {
+            border-color: var(--status-active-border);
+            background-color: #FFFBEB;
+        }
+
+        .report-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--status-broken-bg);
+            color: var(--status-broken-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .report-icon-box.overrun {
+            background-color: var(--status-active-bg);
+            color: var(--status-active-border);
+        }
+
+        .report-btn-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-btn-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--ink-primary);
+        }
+
+        .report-btn-desc {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-muted);
+        }
+
+        .active-reports-card {
+            background-color: var(--canvas-card);
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .report-item {
+            border: 1px solid var(--border-crisp);
+            border-left: 5px solid var(--status-broken-border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background-color: #FFFFFF;
+        }
+        .report-item.overrun {
+            border-left-color: var(--status-active-border);
+        }
+
+        .report-item-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--ink-primary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .report-item-meta {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-muted);
+        }
+
+        /* -------------------------------------------------------------
+           BOTTOM NAVIGATION BAR
+           ------------------------------------------------------------- */
+        .app-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 428px;
+            height: 64px;
+            background-color: var(--forest-deep);
+            border-top: 2px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+            z-index: 90;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn {
+            flex: 1;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.65);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .nav-btn:hover {
+            color: #FFFFFF;
+        }
+        .nav-btn.active {
+            color: #FFFFFF;
+        }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 42%;
+            height: 3px;
+            background-color: var(--aqua-bright);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* -------------------------------------------------------------
+           MODALS & BOTTOM SHEETS
+           ------------------------------------------------------------- */
+        .modal-scrim {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(6, 59, 63, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .modal-scrim.visible {
+            display: flex;
+        }
+
+        .bottom-sheet {
+            width: 100%;
+            max-width: 428px;
+            background-color: #FFFFFF;
+            border-radius: 22px 22px 0 0;
+            padding: 24px 20px 36px 20px;
+            box-shadow: var(--shadow-floating);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-drag-handle {
+            width: 44px;
+            height: 5px;
+            background-color: var(--border-crisp);
+            border-radius: 3px;
+            align-self: center;
+            margin-bottom: 6px;
+        }
+
+        .sheet-title {
+            font-size: 19px;
+            font-weight: 900;
+            color: var(--forest-deep);
+            letter-spacing: -0.01em;
+        }
+
+        .sheet-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-muted);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--ink-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sheet-input {
+            height: 50px;
+            padding: 0 14px;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink-primary);
+            background-color: #FFFFFF;
+        }
+        .sheet-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--aqua-glow);
+        }
+
+        .calculated-liters-box {
+            background-color: var(--aqua-tint);
+            border: 2px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calc-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--forest-deep);
+            text-transform: uppercase;
+        }
+
+        .calc-value {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--forest-deep);
+        }
+
+        .modal-actions-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-modal-cancel {
+            flex: 1;
+            height: 52px;
+            background-color: transparent;
+            border: 2px solid var(--border-crisp);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-modal-cancel:hover {
+            background-color: #F1F5F9;
+        }
+
+        .btn-modal-submit {
+            flex: 2;
+            height: 52px;
+            background-color: var(--forest-deep);
+            border: 2px solid var(--forest-deep);
+            border-radius: var(--radius-md);
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--shadow-subtle);
+            transition: background-color 0.2s;
+        }
+        .btn-modal-submit:hover {
+            background-color: var(--forest-mid);
+        }
+
+        /* Toast Notifications */
+        .toast-banner {
+            position: fixed;
+            top: 72px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 390px;
+            background-color: var(--forest-deep);
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-floating);
+            font-size: 13px;
+            font-weight: 800;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 250;
+            border-left: 5px solid var(--aqua-bright);
+        }
+        .toast-banner.visible {
+            display: flex;
+            animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-banner.error {
+            border-left-color: #EF4444;
+            background-color: #331111;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.6); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(20, 184, 166, 0); }
+            100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        @keyframes slideDown {
+            from { transform: translate(-50%, -20px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <!-- 50,000 L COMMUNITY QUOTA EXCEEDED BANNER -->
+        <div id="globalWaterBanner" class="global-water-banner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="globalWaterBannerText">COMMUNITY WATER LIMIT REACHED: 50,000 L used today</span>
+        </div>
+
+        <!-- POLISHED BRAND HEADER -->
+        <header class="app-header">
+            <div class="brand-group">
+                <div class="brand-mark">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                        <path d="M8 14a4 4 0 0 0 8 0" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">AquaShare</h1>
+                    <div class="brand-subtitle">COMMUNITY WATER V2</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div id="syncStatusBadge" class="sync-badge" title="Click to view cloud connection">
+                    <span class="sync-dot"></span>
+                    <span id="syncStatusText">LIVE</span>
+                </div>
+                <button id="btnAdminControl" class="admin-trigger-btn" aria-label="Community Admin Control" title="Community Control">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT SCROLL AREA -->
+        <main class="content-container">
+
+            <!-- TAB 1: BOOK WATER (CENTRAL CONTROL PANEL) -->
+            <section id="tabPanelBook" class="tab-panel active">
+                
+                <!-- COMMUNITY WATER RESERVOIR GAUGE -->
+                <div class="water-gauge-card">
+                    <div class="gauge-header">
+                        <div class="gauge-label-group">
+                            <span class="gauge-eyebrow">TODAY'S COMMUNITY RESERVOIR</span>
+                            <div class="gauge-headline">
+                                <span id="gaugeLitersText">0</span> <span style="font-size: 16px; font-weight: 800; color: var(--ink-secondary);">L</span>
+                            </div>
+                            <span class="gauge-subtext">Community extraction quota: 50,000 L / day</span>
+                        </div>
+                        <div id="gaugeStatusTag" class="gauge-status-tag safe">SAFE</div>
+                    </div>
+
+                    <!-- Custom Visual Depth Reservoir -->
+                    <div class="reservoir-visual" aria-label="Water usage visual level">
+                        <div id="reservoirFillBar" class="reservoir-liquid"></div>
+                        <div class="reservoir-ticks">
+                            <div class="res-tick"></div>
+                            <div class="res-tick"></div>
+                            <div class="res-tick"></div>
+                            <div class="res-tick"></div>
+                        </div>
+                    </div>
+
+                    <div class="reservoir-caption">
+                        <span>0 L</span>
+                        <span id="gaugePercentText">0% of quota used</span>
+                        <span>50,000 L MAX</span>
+                    </div>
+                </div>
+
+                <!-- GUIDED 4-STEP BOOKING FLOW -->
+                <!-- STEP 01: WHO ARE YOU? -->
+                <div class="booking-step-card">
+                    <div class="step-heading">
+                        <span class="step-num-pill">01</span>
+                        <h2 class="step-title">WHO ARE YOU?</h2>
+                    </div>
+                    <div class="farmer-input-box">
+                        <div class="farmer-input-wrapper">
+                            <svg class="farmer-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <input type="text" id="inputFarmerName" class="large-farmer-input" placeholder="Enter farmer name (e.g. Ramesh)" maxlength="40" autocomplete="off" />
+                        </div>
+                        <div class="recent-farmers-row" id="recentFarmersRow">
+                            <!-- Quick-tap farmer names populated from memory -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 02: CHOOSE PUMP -->
+                <div class="booking-step-card">
+                    <div class="step-heading">
+                        <span class="step-num-pill">02</span>
+                        <h2 class="step-title">CHOOSE COMMUNITY PUMP</h2>
+                    </div>
+                    <div class="pumps-grid" id="pumpsSelectionList">
+                        <!-- Dynamic Pump Cards -->
+                    </div>
+                </div>
+
+                <!-- STEP 03: CHOOSE TIME -->
+                <div class="booking-step-card">
+                    <div class="step-heading">
+                        <span class="step-num-pill">03</span>
+                        <h2 class="step-title">CHOOSE DATE & TIME</h2>
+                    </div>
+
+                    <div class="date-picker-row">
+                        <span class="date-picker-label">RESERVATION DATE</span>
+                        <input type="date" id="bookingDateInput" class="clean-date-input" />
+                    </div>
+
+                    <div class="slots-grid" id="slotsGridContainer">
+                        <!-- 7 Standard 2-Hour Slots (06:00 to 20:00) -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: LIVE SCHEDULE -->
+            <section id="tabPanelSchedule" class="tab-panel">
+                
+                <!-- RIGHT NOW STRIP -->
+                <div class="now-live-strip">
+                    <div class="now-status-col">
+                        <span class="now-eyebrow">RIGHT NOW</span>
+                        <div id="nowActivePumpInfo" class="now-active-info">
+                            <span>Scanning pumps...</span>
+                        </div>
+                    </div>
+                    <div id="liveClockBadge" class="live-clock-badge">--:--</div>
+                </div>
+
+                <!-- HORIZONTAL TIMELINE -->
+                <div class="timeline-card">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <h2 style="font-size: 15px; font-weight: 900; color: var(--forest-deep);">COMMUNITY TIMETABLE</h2>
+                        <span id="scheduleDateLabel" style="font-size: 12px; font-weight: 800; color: var(--aqua-dark);">TODAY</span>
+                    </div>
+
+                    <div class="timeline-time-axis">
+                        <span>6 AM</span>
+                        <span>8</span>
+                        <span>10</span>
+                        <span>12 PM</span>
+                        <span>2</span>
+                        <span>4</span>
+                        <span>6 PM</span>
+                    </div>
+
+                    <div id="timelinePumpsContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Timeline rows per pump -->
+                    </div>
+                </div>
+
+                <!-- TODAY'S BOOKINGS & WATER LOGGING -->
+                <div class="schedule-header-card">
+                    <h2 style="font-size: 15px; font-weight: 900; color: var(--forest-deep);">TODAY'S RESERVATIONS</h2>
+                    <div id="scheduleBookingsList" class="schedule-bookings-list">
+                        <!-- Bookings list -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 3: REPORT A PROBLEM -->
+            <section id="tabPanelReport" class="tab-panel">
+                
+                <div class="booking-step-card">
+                    <div class="step-heading">
+                        <span class="step-num-pill" style="background-color: var(--status-broken-border);">HELP</span>
+                        <h2 class="step-title">COMMUNITY REPORT</h2>
+                    </div>
+                    <p style="font-size: 13px; font-weight: 600; color: var(--ink-muted);">
+                        Report pump malfunctions or time overruns to protect shared community water.
+                    </p>
+
+                    <div class="report-choice-grid">
+                        <button id="btnReportBroken" class="report-big-btn">
+                            <div class="report-icon-box">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                                </svg>
+                            </div>
+                            <div class="report-btn-text">
+                                <span class="report-btn-title">PUMP IS BROKEN</span>
+                                <span class="report-btn-desc">Disables pump bookings community-wide immediately.</span>
+                            </div>
+                        </button>
+
+                        <button id="btnReportOverrun" class="report-big-btn overrun">
+                            <div class="report-icon-box overrun">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
+                            <div class="report-btn-text">
+                                <span class="report-btn-title">SOMEONE USING EXTRA TIME</span>
+                                <span class="report-btn-desc">Notify community of time overrun past their slot.</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ACTIVE COMMUNITY PROBLEMS LIST -->
+                <div class="active-reports-card">
+                    <h2 style="font-size: 15px; font-weight: 900; color: var(--forest-deep);">ACTIVE COMMUNITY ALERTS</h2>
+                    <div id="activeReportsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Reports populated dynamically -->
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- STICKY BOTTOM CONFIRMATION DOCK (ON BOOK TAB) -->
+        <div id="stickyBookingDock" class="sticky-booking-dock" style="display: none;">
+            <div class="dock-summary">
+                <span id="dockPumpText" class="dock-pump-title">Select Pump</span>
+                <span id="dockSlotText" class="dock-slot-desc">Choose a time slot</span>
+            </div>
+            <button id="btnConfirmBooking" class="btn-primary-confirm" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>CONFIRM BOOKING</span>
+            </button>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="app-nav">
+            <button id="navBtnBook" class="nav-btn active" data-tab="tabPanelBook">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+                <span class="nav-label">BOOK</span>
+            </button>
+
+            <button id="navBtnSchedule" class="nav-btn" data-tab="tabPanelSchedule">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span class="nav-label">SCHEDULE</span>
+            </button>
+
+            <button id="navBtnReport" class="nav-btn" data-tab="tabPanelReport">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span class="nav-label">REPORT</span>
+            </button>
+        </nav>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toastBanner" class="toast-banner">
+            <span id="toastMessage">Action completed</span>
+        </div>
+
+        <!-- MODAL: BOOKING CONFIRMATION SUCCESS -->
+        <div id="modalBookingSuccess" class="modal-scrim">
+            <div class="bottom-sheet">
+                <div class="modal-drag-handle"></div>
+                <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background-color: var(--status-avail-bg); color: var(--status-avail-text); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                    <h3 class="sheet-title">✓ BOOKING CONFIRMED</h3>
+                    <div id="successModalPumpText" style="font-size: 18px; font-weight: 900; color: var(--forest-deep);">PUMP 01</div>
+                    <div id="successModalTimeText" style="font-size: 14px; font-weight: 800; color: var(--ink-secondary);">Today 10:00 AM — 12:00 PM</div>
+                    <p class="sheet-desc" style="margin-top: 4px;">Your water time is reserved and synced with all community farmers.</p>
+                </div>
+
+                <div class="modal-actions-row">
+                    <button id="btnViewScheduleFromSuccess" class="btn-modal-submit" style="flex: 1;">VIEW TODAY'S SCHEDULE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: LOG WATER METER -->
+        <div id="modalLogMeter" class="modal-scrim">
+            <div class="bottom-sheet">
+                <div class="modal-drag-handle"></div>
+                <h3 class="sheet-title">LOG WATER METER</h3>
+                <div id="meterModalBookingInfo" class="sheet-desc">Pump 01 · 10:00–12:00 · Ramesh</div>
+
+                <div class="input-group">
+                    <label class="input-label" for="meterStartInput">Start Meter Reading</label>
+                    <input type="number" id="meterStartInput" class="sheet-input" placeholder="e.g. 10450" step="any" min="0" />
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="meterEndInput">End Meter Reading</label>
+                    <input type="number" id="meterEndInput" class="sheet-input" placeholder="e.g. 11700" step="any" min="0" />
+                </div>
+
+                <div class="calculated-liters-box">
+                    <span class="calc-title">WATER DRAWN</span>
+                    <span id="meterCalculatedLiters" class="calc-value">0 L</span>
+                </div>
+
+                <div id="meterErrorMsg" style="display: none; color: #DC2626; font-size: 13px; font-weight: 800;">
+                    End reading must be higher than start reading.
+                </div>
+
+                <div class="modal-actions-row">
+                    <button id="btnCancelMeterLog" class="btn-modal-cancel">Cancel</button>
+                    <button id="btnSubmitMeterLog" class="btn-modal-submit">SAVE WATER LOG</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SUBMIT REPORT -->
+        <div id="modalSubmitReport" class="modal-scrim">
+            <div class="bottom-sheet">
+                <div class="modal-drag-handle"></div>
+                <h3 id="reportModalTitle" class="sheet-title">REPORT PUMP PROBLEM</h3>
+
+                <div class="input-group">
+                    <label class="input-label" for="reportPumpSelect">Select Pump</label>
+                    <select id="reportPumpSelect" class="sheet-input">
+                        <option value="1">Pump 01 - North Well</option>
+                        <option value="2">Pump 02 - East Bore</option>
+                        <option value="3">Pump 03 - Central Hub</option>
+                        <option value="4">Pump 04 - West Canal</option>
+                        <option value="5">Pump 05 - South Field</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="reportFarmerName">Your Name</label>
+                    <input type="text" id="reportFarmerName" class="sheet-input" placeholder="Farmer name" />
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="reportNoteInput">Details (Optional)</label>
+                    <input type="text" id="reportNoteInput" class="sheet-input" placeholder="e.g. Motor tripping after 5 mins" />
+                </div>
+
+                <div class="modal-actions-row">
+                    <button id="btnCancelReport" class="btn-modal-cancel">Cancel</button>
+                    <button id="btnSubmitReportConfirm" class="btn-modal-submit">SUBMIT REPORT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: COMMUNITY CONTROL & CLOUD SETTINGS -->
+        <div id="modalCommunityControl" class="modal-scrim">
+            <div class="bottom-sheet">
+                <div class="modal-drag-handle"></div>
+                <h3 class="sheet-title">COMMUNITY CONTROL & CLOUD</h3>
+                <p class="sheet-desc">Manage shared community pumps, resolve reports, or configure Supabase credentials.</p>
+
+                <div class="input-group">
+                    <label class="input-label" for="adminPasscodeInput">Admin Passcode</label>
+                    <input type="password" id="adminPasscodeInput" class="sheet-input" placeholder="Enter community passcode" />
+                </div>
+
+                <div id="adminControlsArea" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="font-size: 12px; font-weight: 800; color: var(--forest-deep); margin-top: 4px;">PUMP RESTORATION</div>
+                    <div id="adminPumpsRestoreList" style="display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Pumps needing restoration -->
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--border-crisp); margin: 8px 0;" />
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 12px; font-weight: 800; color: var(--forest-deep);">SUPABASE CLOUD CREDENTIALS</div>
+                    <input type="text" id="cfgSupabaseUrl" class="sheet-input" placeholder="https://<project-ref>.supabase.co" style="font-size: 13px;" />
+                    <input type="password" id="cfgSupabaseKey" class="sheet-input" placeholder="Supabase Anon Key" style="font-size: 13px;" />
+                    <button id="btnSaveCloudConfig" class="btn-modal-submit" style="height: 48px; font-size: 13px;">CONNECT / SYNC SUPABASE</button>
+                </div>
+
+                <div class="modal-actions-row">
+                    <button id="btnCloseAdminModal" class="btn-modal-cancel">Close</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ====================================================================
+         AQUASHARE V2 JAVASCRIPT LOGIC
+         Vanilla JS, Zero Dependencies, Realtime Supabase + Local Cache
+         ==================================================================== -->
+    <script>
+        (function () {
+            'use strict';
+
+            // --- CONSTANTS & CONFIGURATION ---
+            const DAILY_LIMIT_LITERS = 50000;
+            const TIME_SLOTS = [
+                { id: '06-08', start: '06:00', end: '08:00', label: '06:00 – 08:00' },
+                { id: '08-10', start: '08:00', end: '10:00', label: '08:00 – 10:00' },
+                { id: '10-12', start: '10:00', end: '12:00', label: '10:00 – 12:00' },
+                { id: '12-14', start: '12:00', end: '14:00', label: '12:00 – 14:00' },
+                { id: '14-16', start: '14:00', end: '16:00', label: '14:00 – 16:00' },
+                { id: '16-18', start: '16:00', end: '18:00', label: '16:00 – 18:00' },
+                { id: '18-20', start: '18:00', end: '20:00', label: '18:00 – 20:00' }
+            ];
+
+            const DEFAULT_PUMPS = [
+                { id: 1, name: 'Pump 01', location: 'North Well — Borewell A', status: 'available' },
+                { id: 2, name: 'Pump 02', location: 'East Bore — Solar Array 1', status: 'available' },
+                { id: 3, name: 'Pump 03', location: 'Central Hub — Main Aquifer', status: 'available' },
+                { id: 4, name: 'Pump 04', location: 'West Canal — Deep Borewell B', status: 'available' },
+                { id: 5, name: 'Pump 05', location: 'South Field — Community Sump', status: 'available' }
+            ];
+
+            // Local Device ID for ownership tracking
+            let deviceId = localStorage.getItem('aquashare_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+                localStorage.setItem('aquashare_device_id', deviceId);
+            }
+
+            // Supabase credentials (stored locally or injected)
+            let supabaseUrl = localStorage.getItem('aquashare_sb_url') || '';
+            let supabaseAnonKey = localStorage.getItem('aquashare_sb_key') || '';
+
+            // --- IN-MEMORY STATE (CACHED WITH LOCALSTORAGE) ---
+            let appState = {
+                pumps: DEFAULT_PUMPS,
+                bookings: [],
+                meterLogs: [],
+                reports: [],
+                isOnline: navigator.onLine,
+                isConnectedToCloud: false,
+                selectedPumpId: 1,
+                selectedSlotId: null,
+                selectedDate: getTodayString()
+            };
+
+            // Load Local Cache immediately on startup
+            loadLocalCache();
+
+            // Active Report Type holder for modal
+            let currentReportType = 'broken';
+            let activeMeterBooking = null;
+
+            // --- DOM ELEMENTS ---
+            const globalWaterBanner = document.getElementById('globalWaterBanner');
+            const globalWaterBannerText = document.getElementById('globalWaterBannerText');
+            const syncStatusBadge = document.getElementById('syncStatusBadge');
+            const syncStatusText = document.getElementById('syncStatusText');
+            const btnAdminControl = document.getElementById('btnAdminControl');
+
+            // Gauge elements
+            const gaugeLitersText = document.getElementById('gaugeLitersText');
+            const gaugeStatusTag = document.getElementById('gaugeStatusTag');
+            const reservoirFillBar = document.getElementById('reservoirFillBar');
+            const gaugePercentText = document.getElementById('gaugePercentText');
+
+            // Booking elements
+            const inputFarmerName = document.getElementById('inputFarmerName');
+            const recentFarmersRow = document.getElementById('recentFarmersRow');
+            const pumpsSelectionList = document.getElementById('pumpsSelectionList');
+            const bookingDateInput = document.getElementById('bookingDateInput');
+            const slotsGridContainer = document.getElementById('slotsGridContainer');
+            const stickyBookingDock = document.getElementById('stickyBookingDock');
+            const dockPumpText = document.getElementById('dockPumpText');
+            const dockSlotText = document.getElementById('dockSlotText');
+            const btnConfirmBooking = document.getElementById('btnConfirmBooking');
+
+            // Schedule elements
+            const nowActivePumpInfo = document.getElementById('nowActivePumpInfo');
+            const liveClockBadge = document.getElementById('liveClockBadge');
+            const scheduleDateLabel = document.getElementById('scheduleDateLabel');
+            const timelinePumpsContainer = document.getElementById('timelinePumpsContainer');
+            const scheduleBookingsList = document.getElementById('scheduleBookingsList');
+
+            // Report elements
+            const btnReportBroken = document.getElementById('btnReportBroken');
+            const btnReportOverrun = document.getElementById('btnReportOverrun');
+            const activeReportsContainer = document.getElementById('activeReportsContainer');
+
+            // Modals
+            const modalBookingSuccess = document.getElementById('modalBookingSuccess');
+            const successModalPumpText = document.getElementById('successModalPumpText');
+            const successModalTimeText = document.getElementById('successModalTimeText');
+            const btnViewScheduleFromSuccess = document.getElementById('btnViewScheduleFromSuccess');
+
+            const modalLogMeter = document.getElementById('modalLogMeter');
+            const meterModalBookingInfo = document.getElementById('meterModalBookingInfo');
+            const meterStartInput = document.getElementById('meterStartInput');
+            const meterEndInput = document.getElementById('meterEndInput');
+            const meterCalculatedLiters = document.getElementById('meterCalculatedLiters');
+            const meterErrorMsg = document.getElementById('meterErrorMsg');
+            const btnCancelMeterLog = document.getElementById('btnCancelMeterLog');
+            const btnSubmitMeterLog = document.getElementById('btnSubmitMeterLog');
+
+            const modalSubmitReport = document.getElementById('modalSubmitReport');
+            const reportModalTitle = document.getElementById('reportModalTitle');
+            const reportPumpSelect = document.getElementById('reportPumpSelect');
+            const reportFarmerName = document.getElementById('reportFarmerName');
+            const reportNoteInput = document.getElementById('reportNoteInput');
+            const btnCancelReport = document.getElementById('btnCancelReport');
+            const btnSubmitReportConfirm = document.getElementById('btnSubmitReportConfirm');
+
+            const modalCommunityControl = document.getElementById('modalCommunityControl');
+            const adminPasscodeInput = document.getElementById('adminPasscodeInput');
+            const adminPumpsRestoreList = document.getElementById('adminPumpsRestoreList');
+            const cfgSupabaseUrl = document.getElementById('cfgSupabaseUrl');
+            const cfgSupabaseKey = document.getElementById('cfgSupabaseKey');
+            const btnSaveCloudConfig = document.getElementById('btnSaveCloudConfig');
+            const btnCloseAdminModal = document.getElementById('btnCloseAdminModal');
+
+            // Nav buttons
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+
+            // Toast
+            const toastBanner = document.getElementById('toastBanner');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // --- DATE HELPERS ---
+            function getTodayString() {
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function formatDisplayDate(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return dateStr;
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                return d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' });
+            }
+
+            // --- LOCAL CACHE LOGIC ---
+            function loadLocalCache() {
+                try {
+                    const cachedPumps = localStorage.getItem('aquashare_cache_pumps');
+                    if (cachedPumps) appState.pumps = JSON.parse(cachedPumps);
+
+                    const cachedBookings = localStorage.getItem('aquashare_cache_bookings');
+                    if (cachedBookings) appState.bookings = JSON.parse(cachedBookings);
+
+                    const cachedMeters = localStorage.getItem('aquashare_cache_meters');
+                    if (cachedMeters) appState.meterLogs = JSON.parse(cachedMeters);
+
+                    const cachedReports = localStorage.getItem('aquashare_cache_reports');
+                    if (cachedReports) appState.reports = JSON.parse(cachedReports);
+                } catch (err) {
+                    console.warn('Failed to parse local cache, resetting to defaults.', err);
+                }
+            }
+
+            function persistLocalCache() {
+                try {
+                    localStorage.setItem('aquashare_cache_pumps', JSON.stringify(appState.pumps));
+                    localStorage.setItem('aquashare_cache_bookings', JSON.stringify(appState.bookings));
+                    localStorage.setItem('aquashare_cache_meters', JSON.stringify(appState.meterLogs));
+                    localStorage.setItem('aquashare_cache_reports', JSON.stringify(appState.reports));
+                } catch (e) {
+                    console.warn('LocalStorage quota exceeded or unavailable.', e);
+                }
+            }
+
+            // --- SUPABASE REST & REALTIME CLIENT ---
+            function hasCloudCredentials() {
+                return Boolean(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'));
+            }
+
+            async function supabaseRequest(endpoint, options = {}) {
+                if (!hasCloudCredentials()) {
+                    throw new Error('Supabase not configured');
+                }
+
+                const url = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/${endpoint}`;
+                const headers = {
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': options.prefer || 'return=representation',
+                    ...options.headers
+                };
+
+                const res = await fetch(url, {
+                    ...options,
+                    headers
+                });
+
+                if (!res.ok) {
+                    const errBody = await res.json().catch(() => ({}));
+                    throw new Error(errBody.message || errBody.error || `HTTP ${res.status}`);
+                }
+
+                if (res.status === 204) return null;
+                return res.json();
+            }
+
+            // Sync from Supabase Cloud
+            async function syncFromCloud() {
+                if (!navigator.onLine || !hasCloudCredentials()) {
+                    updateConnectionStatus(false);
+                    return;
+                }
+
+                try {
+                    const [remotePumps, remoteBookings, remoteMeters, remoteReports] = await Promise.all([
+                        supabaseRequest('pumps?select=*&order=id.asc'),
+                        supabaseRequest('bookings?select=*&order=start_time.asc'),
+                        supabaseRequest('meter_logs?select=*&order=created_at.asc'),
+                        supabaseRequest('reports?select=*&order=created_at.desc')
+                    ]);
+
+                    if (Array.isArray(remotePumps) && remotePumps.length > 0) {
+                        appState.pumps = remotePumps;
+                    }
+                    if (Array.isArray(remoteBookings)) {
+                        appState.bookings = remoteBookings;
+                    }
+                    if (Array.isArray(remoteMeters)) {
+                        appState.meterLogs = remoteMeters;
+                    }
+                    if (Array.isArray(remoteReports)) {
+                        appState.reports = remoteReports;
+                    }
+
+                    appState.isConnectedToCloud = true;
+                    persistLocalCache();
+                    updateConnectionStatus(true);
+                    renderAll();
+                } catch (err) {
+                    console.warn('Supabase sync warning:', err.message);
+                    updateConnectionStatus(false);
+                }
+            }
+
+            // Supabase Realtime WebSocket Connection
+            let realtimeWs = null;
+            function connectRealtime() {
+                if (!hasCloudCredentials() || !navigator.onLine) return;
+
+                try {
+                    const wsHost = supabaseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                    const wsUrl = `wss://${wsHost}/realtime/v1/websocket?apikey=${supabaseAnonKey}&vsn=1.0.0`;
+
+                    if (realtimeWs) {
+                        realtimeWs.close();
+                    }
+
+                    realtimeWs = new WebSocket(wsUrl);
+
+                    realtimeWs.onopen = () => {
+                        const subMsg = {
+                            topic: 'realtime:public',
+                            event: 'phx_join',
+                            payload: {},
+                            ref: '1'
+                        };
+                        realtimeWs.send(JSON.stringify(subMsg));
+                        setInterval(() => {
+                            if (realtimeWs && realtimeWs.readyState === WebSocket.OPEN) {
+                                realtimeWs.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' }));
+                            }
+                        }, 25000);
+                    };
+
+                    realtimeWs.onmessage = (evt) => {
+                        try {
+                            const data = JSON.parse(evt.data);
+                            if (data.event === 'INSERT' || data.event === 'UPDATE' || data.event === 'DELETE') {
+                                syncFromCloud();
+                            }
+                        } catch (e) {}
+                    };
+
+                    realtimeWs.onerror = () => {};
+                } catch (e) {
+                    console.warn('Realtime setup error:', e);
+                }
+            }
+
+            function setDeviceId(newId) {
+                deviceId = newId;
+                localStorage.setItem('aquashare_device_id', newId);
+            }
+
+            function updateConnectionStatus(isLive) {
+                if (!appState.isOnline) {
+                    syncStatusBadge.className = 'sync-badge offline';
+                    syncStatusText.textContent = 'OFFLINE';
+                } else if (isLive && appState.isConnectedToCloud) {
+                    syncStatusBadge.className = 'sync-badge';
+                    syncStatusText.textContent = 'LIVE';
+                } else {
+                    syncStatusBadge.className = 'sync-badge';
+                    syncStatusText.textContent = 'SYNCED';
+                }
+            }
+
+            // --- WATER QUOTA CALCULATION ---
+            function getTodayLiters() {
+                const today = getTodayString();
+                const logs = appState.meterLogs.filter(m => m.date === today);
+                const total = logs.reduce((sum, item) => sum + Number(item.liters || 0), 0);
+                return Math.round(total * 100) / 100;
+            }
+
+            function updateWaterUI() {
+                const totalL = getTodayLiters();
+                const percent = Math.min(100, Math.round((totalL / DAILY_LIMIT_LITERS) * 100));
+
+                gaugeLitersText.textContent = totalL.toLocaleString();
+                gaugePercentText.textContent = `${percent}% of daily quota`;
+                reservoirFillBar.style.width = `${percent}%`;
+
+                if (totalL >= DAILY_LIMIT_LITERS) {
+                    gaugeStatusTag.className = 'gauge-status-tag limit';
+                    gaugeStatusTag.textContent = 'LIMIT REACHED';
+                    reservoirFillBar.className = 'reservoir-liquid limit-state';
+                    globalWaterBanner.className = 'global-water-banner visible';
+                    globalWaterBannerText.textContent = `COMMUNITY WATER LIMIT REACHED: ${totalL.toLocaleString()} L used today. Use water carefully!`;
+                } else if (totalL >= 40000) {
+                    gaugeStatusTag.className = 'gauge-status-tag watch';
+                    gaugeStatusTag.textContent = 'HIGH USE';
+                    reservoirFillBar.className = 'reservoir-liquid';
+                    globalWaterBanner.className = 'global-water-banner';
+                } else {
+                    gaugeStatusTag.className = 'gauge-status-tag safe';
+                    gaugeStatusTag.textContent = 'SAFE';
+                    reservoirFillBar.className = 'reservoir-liquid';
+                    globalWaterBanner.className = 'global-water-banner';
+                }
+            }
+
+            // --- RECENT FARMERS MEMORY ---
+            function getRecentFarmers() {
+                try {
+                    const list = localStorage.getItem('aquashare_recent_farmers');
+                    return list ? JSON.parse(list) : ['Ramesh', 'Suresh', 'Kavita', 'Anil'];
+                } catch {
+                    return ['Ramesh', 'Suresh'];
+                }
+            }
+
+            function saveRecentFarmer(name) {
+                if (!name || name.trim().length < 2) return;
+                const clean = name.trim();
+                let list = getRecentFarmers().filter(n => n.toLowerCase() !== clean.toLowerCase());
+                list.unshift(clean);
+                if (list.length > 6) list.pop();
+                try {
+                    localStorage.setItem('aquashare_recent_farmers', JSON.stringify(list));
+                } catch {}
+                renderRecentFarmers();
+            }
+
+            function renderRecentFarmers() {
+                const farmers = getRecentFarmers();
+                recentFarmersRow.innerHTML = '';
+                farmers.forEach(name => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'farmer-chip';
+                    chip.textContent = name;
+                    chip.addEventListener('click', () => {
+                        inputFarmerName.value = name;
+                        updateBookingDock();
+                    });
+                    recentFarmersRow.appendChild(chip);
+                });
+            }
+
+            // --- PUMP SELECTION & RENDERING ---
+            function renderPumps() {
+                pumpsSelectionList.innerHTML = '';
+                const today = appState.selectedDate;
+
+                appState.pumps.forEach(pump => {
+                    const card = document.createElement('div');
+                    const isBroken = pump.status === 'broken';
+                    const isSelected = pump.id === appState.selectedPumpId;
+
+                    let classes = ['pump-card'];
+                    if (isBroken) classes.push('broken');
+                    else if (isSelected) classes.push('selected');
+                    card.className = classes.join(' ');
+
+                    const nowStatus = getPumpCurrentStatus(pump.id, today);
+
+                    card.innerHTML = `
+                        <div class="pump-info-col">
+                            <span class="pump-id-tag">0${pump.id}</span>
+                            <div class="pump-details">
+                                <span class="pump-name-text">${pump.name}</span>
+                                <span class="pump-location-sub">${pump.location}</span>
+                            </div>
+                        </div>
+                        <div class="pump-status-badge ${isBroken ? 'broken' : nowStatus.statusClass}">
+                            <span>●</span>
+                            <span>${isBroken ? 'BROKEN' : nowStatus.statusLabel}</span>
+                        </div>
+                    `;
+
+                    if (!isBroken) {
+                        card.addEventListener('click', () => {
+                            appState.selectedPumpId = pump.id;
+                            renderPumps();
+                            renderSlots();
+                            updateBookingDock();
+                        });
+                    }
+
+                    pumpsSelectionList.appendChild(card);
+                });
+            }
+
+            function getPumpCurrentStatus(pumpId, dateStr) {
+                const pump = appState.pumps.find(p => p.id === pumpId);
+                if (pump && pump.status === 'broken') {
+                    return { statusClass: 'broken', statusLabel: 'BROKEN' };
+                }
+
+                const now = new Date();
+                const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                const isToday = (dateStr === getTodayString());
+
+                const bookings = appState.bookings.filter(b => 
+                    b.pump_id === pumpId && 
+                    b.booking_date === dateStr && 
+                    b.status === 'confirmed'
+                );
+
+                if (isToday) {
+                    for (const b of bookings) {
+                        const [sH, sM] = b.start_time.split(':').map(Number);
+                        const [eH, eM] = b.end_time.split(':').map(Number);
+                        const startMin = sH * 60 + sM;
+                        const endMin = eH * 60 + eM;
+
+                        if (nowMinutes >= startMin && nowMinutes < endMin) {
+                            return { statusClass: 'active', statusLabel: 'ACTIVE NOW' };
+                        }
+                    }
+                }
+
+                return { statusClass: 'available', statusLabel: 'AVAILABLE' };
+            }
+
+            // --- TIME SLOTS RENDERING ---
+            function renderSlots() {
+                slotsGridContainer.innerHTML = '';
+                const pumpId = appState.selectedPumpId;
+                const dateStr = appState.selectedDate;
+                const now = new Date();
+                const isToday = (dateStr === getTodayString());
+                const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+                const pump = appState.pumps.find(p => p.id === pumpId);
+                const isPumpBroken = pump && pump.status === 'broken';
+
+                TIME_SLOTS.forEach(slot => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'slot-btn';
+
+                    const [sH, sM] = slot.start.split(':').map(Number);
+                    const [eH, eM] = slot.end.split(':').map(Number);
+                    const startMin = sH * 60 + sM;
+                    const endMin = eH * 60 + eM;
+
+                    const isPast = isToday && (nowMinutes >= endMin);
+
+                    const existingBooking = appState.bookings.find(b =>
+                        b.pump_id === pumpId &&
+                        b.booking_date === dateStr &&
+                        b.status === 'confirmed' &&
+                        timeRangesOverlap(slot.start, slot.end, b.start_time, b.end_time)
+                    );
+
+                    let statusText = 'AVAILABLE';
+                    let isYours = false;
+
+                    if (isPumpBroken) {
+                        btn.classList.add('past');
+                        btn.disabled = true;
+                        statusText = 'BROKEN';
+                    } else if (existingBooking) {
+                        isYours = (existingBooking.farmer_device_id === deviceId);
+                        if (isYours) {
+                            btn.classList.add('yours');
+                            statusText = 'YOUR BOOKING';
+                        } else {
+                            btn.classList.add('booked');
+                            statusText = `${existingBooking.farmer_name}`;
+                        }
+                        btn.disabled = true;
+                    } else if (isPast) {
+                        btn.classList.add('past');
+                        btn.disabled = true;
+                        statusText = 'PAST';
+                    } else {
+                        if (appState.selectedSlotId === slot.id) {
+                            btn.classList.add('selected');
+                        }
+                        btn.addEventListener('click', () => {
+                            appState.selectedSlotId = (appState.selectedSlotId === slot.id) ? null : slot.id;
+                            renderSlots();
+                            updateBookingDock();
+                        });
+                    }
+
+                    btn.innerHTML = `
+                        <span class="slot-time-text">${slot.label}</span>
+                        <span class="slot-status-label">${statusText}</span>
+                    `;
+
+                    slotsGridContainer.appendChild(btn);
+                });
+            }
+
+            function timeRangesOverlap(s1, e1, s2, e2) {
+                return (s1 < e2 && e1 > s2);
+            }
+
+            // --- STICKY CONFIRMATION DOCK ---
+            function updateBookingDock() {
+                const pump = appState.pumps.find(p => p.id === appState.selectedPumpId);
+                const slot = TIME_SLOTS.find(s => s.id === appState.selectedSlotId);
+                const farmerName = inputFarmerName.value.trim();
+
+                if (!slot || !pump || pump.status === 'broken') {
+                    stickyBookingDock.style.display = 'none';
+                    return;
+                }
+
+                stickyBookingDock.style.display = 'flex';
+                dockPumpText.textContent = `${pump.name} — ${pump.location}`;
+                dockSlotText.textContent = `${formatDisplayDate(appState.selectedDate)} · ${slot.label}`;
+
+                btnConfirmBooking.disabled = (!farmerName || farmerName.length < 2);
+            }
+
+            // --- BOOKING SUBMISSION (CONCURRENCY-PROOF) ---
+            async function handleBookingSubmission() {
+                const farmerName = inputFarmerName.value.trim();
+                const pump = appState.pumps.find(p => p.id === appState.selectedPumpId);
+                const slot = TIME_SLOTS.find(s => s.id === appState.selectedSlotId);
+                const dateStr = appState.selectedDate;
+
+                if (!farmerName || farmerName.length < 2) {
+                    showToast('Please enter your farmer name', true);
+                    inputFarmerName.focus();
+                    return;
+                }
+                if (!pump || pump.status === 'broken') {
+                    showToast('Selected pump is broken or invalid', true);
+                    return;
+                }
+                if (!slot) {
+                    showToast('Please select an available time slot', true);
+                    return;
+                }
+
+                btnConfirmBooking.disabled = true;
+                btnConfirmBooking.textContent = 'CONFIRMING...';
+
+                // 1. Client-side conflict pre-check
+                const hasLocalConflict = appState.bookings.some(b =>
+                    b.pump_id === pump.id &&
+                    b.booking_date === dateStr &&
+                    b.status === 'confirmed' &&
+                    timeRangesOverlap(slot.start, slot.end, b.start_time, b.end_time)
+                );
+
+                if (hasLocalConflict) {
+                    showToast('Conflict: This slot was just reserved by another farmer!', true);
+                    btnConfirmBooking.disabled = false;
+                    btnConfirmBooking.textContent = 'CONFIRM BOOKING';
+                    renderSlots();
+                    return;
+                }
+
+                // 2. Server-side / Supabase Atomic Booking
+                let confirmedBookingId = 'bk_' + Date.now().toString(36);
+
+                if (hasCloudCredentials() && navigator.onLine) {
+                    try {
+                        const rpcResult = await supabaseRequest('rpc/book_pump', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                p_pump_id: pump.id,
+                                p_farmer_name: farmerName,
+                                p_farmer_device_id: deviceId,
+                                p_booking_date: dateStr,
+                                p_start_time: slot.start + ':00',
+                                p_end_time: slot.end + ':00'
+                            })
+                        });
+
+                        if (rpcResult && rpcResult.success === false) {
+                            throw new Error(rpcResult.error || 'Booking rejected by server.');
+                        }
+
+                        if (rpcResult && rpcResult.booking_id) {
+                            confirmedBookingId = rpcResult.booking_id;
+                        }
+                    } catch (cloudErr) {
+                        showToast(`Server rejected booking: ${cloudErr.message}`, true);
+                        btnConfirmBooking.disabled = false;
+                        btnConfirmBooking.textContent = 'CONFIRM BOOKING';
+                        syncFromCloud();
+                        return;
+                    }
+                }
+
+                // 3. Save to local state and cache
+                const newBooking = {
+                    id: confirmedBookingId,
+                    pump_id: pump.id,
+                    farmer_name: farmerName,
+                    farmer_device_id: deviceId,
+                    booking_date: dateStr,
+                    start_time: slot.start,
+                    end_time: slot.end,
+                    status: 'confirmed',
+                    created_at: new Date().toISOString()
+                };
+
+                appState.bookings.push(newBooking);
+                persistLocalCache();
+                saveRecentFarmer(farmerName);
+
+                // Show Confirmation Modal
+                successModalPumpText.textContent = `${pump.name} — ${pump.location}`;
+                successModalTimeText.textContent = `${formatDisplayDate(dateStr)} · ${slot.label}`;
+                modalBookingSuccess.classList.add('visible');
+
+                // Reset selection
+                appState.selectedSlotId = null;
+                renderSlots();
+                updateBookingDock();
+
+                btnConfirmBooking.disabled = false;
+                btnConfirmBooking.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>CONFIRM BOOKING</span>
+                `;
+
+                syncFromCloud();
+            }
+
+            // --- SCHEDULE RENDERING ---
+            function renderSchedule() {
+                const today = getTodayString();
+                scheduleDateLabel.textContent = formatDisplayDate(today);
+
+                // 1. Right Now Active Info
+                const now = new Date();
+                const nowMin = now.getHours() * 60 + now.getMinutes();
+                const activeBookings = appState.bookings.filter(b => {
+                    if (b.booking_date !== today || b.status !== 'confirmed') return false;
+                    const [sH, sM] = b.start_time.split(':').map(Number);
+                    const [eH, eM] = b.end_time.split(':').map(Number);
+                    return (nowMin >= (sH * 60 + sM) && nowMin < (eH * 60 + eM));
+                });
+
+                if (activeBookings.length > 0) {
+                    const b = activeBookings[0];
+                    const pump = appState.pumps.find(p => p.id === b.pump_id);
+                    nowActivePumpInfo.innerHTML = `<span style="color: #F59E0B;">🟡</span> <strong>${pump ? pump.name : 'Pump'}</strong>: ${b.farmer_name} (${b.start_time.substring(0, 5)}–${b.end_time.substring(0, 5)})`;
+                } else {
+                    nowActivePumpInfo.innerHTML = `<span>All pumps currently idle & available</span>`;
+                }
+
+                // 2. Timetable Grid
+                timelinePumpsContainer.innerHTML = '';
+                appState.pumps.forEach(pump => {
+                    const row = document.createElement('div');
+                    row.className = 'timeline-pump-row';
+
+                    const isBroken = pump.status === 'broken';
+
+                    let slotsHtml = '';
+                    if (isBroken) {
+                        slotsHtml = `<div class="timeline-slot-cell maintenance-block">⚠️ UNDER MAINTENANCE / BROKEN</div>`;
+                    } else {
+                        TIME_SLOTS.forEach(slot => {
+                            const [sH, sM] = slot.start.split(':').map(Number);
+                            const [eH, eM] = slot.end.split(':').map(Number);
+                            const startMin = sH * 60 + sM;
+                            const endMin = eH * 60 + eM;
+
+                            const booking = appState.bookings.find(b =>
+                                b.pump_id === pump.id &&
+                                b.booking_date === today &&
+                                b.status === 'confirmed' &&
+                                timeRangesOverlap(slot.start, slot.end, b.start_time, b.end_time)
+                            );
+
+                            let cellClass = 'timeline-slot-cell';
+                            let content = '—';
+
+                            if (booking) {
+                                if (nowMin >= startMin && nowMin < endMin) {
+                                    cellClass += ' active-block';
+                                    content = `${booking.farmer_name.split(' ')[0]}`;
+                                } else if (nowMin >= endMin) {
+                                    cellClass += ' completed-block';
+                                    content = `${booking.farmer_name.split(' ')[0]}`;
+                                } else {
+                                    cellClass += ' booked-block';
+                                    content = `${booking.farmer_name.split(' ')[0]}`;
+                                }
+                            }
+
+                            slotsHtml += `<div class="${cellClass}">${content}</div>`;
+                        });
+                    }
+
+                    row.innerHTML = `
+                        <div class="row-pump-header">
+                            <span class="row-pump-title">${pump.name}</span>
+                            <span style="font-size: 11px; font-weight: 800; color: ${isBroken ? 'var(--status-broken-border)' : 'var(--status-avail-text)'};">
+                                ${isBroken ? 'BROKEN' : 'ACTIVE'}
+                            </span>
+                        </div>
+                        <div class="timeline-track">
+                            ${slotsHtml}
+                        </div>
+                    `;
+
+                    timelinePumpsContainer.appendChild(row);
+                });
+
+                // 3. Schedule Bookings List with Meter Logging
+                scheduleBookingsList.innerHTML = '';
+                const todayBookings = appState.bookings
+                    .filter(b => b.booking_date === today && b.status === 'confirmed')
+                    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+                if (todayBookings.length === 0) {
+                    scheduleBookingsList.innerHTML = `<div style="text-align: center; color: var(--ink-muted); font-size: 13px; font-weight: 700; padding: 20px;">No reservations scheduled for today yet.</div>`;
+                    return;
+                }
+
+                todayBookings.forEach(booking => {
+                    const pump = appState.pumps.find(p => p.id === booking.pump_id);
+                    const [eH, eM] = booking.end_time.split(':').map(Number);
+                    const isCompleted = nowMin >= (eH * 60 + eM);
+
+                    const loggedMeter = appState.meterLogs.find(m => m.booking_id === booking.id);
+
+                    const item = document.createElement('div');
+                    item.className = 'booking-item-card';
+
+                    let actionHtml = '';
+                    if (loggedMeter) {
+                        actionHtml = `<span class="logged-badge">✓ ${loggedMeter.liters} L LOGGED</span>`;
+                    } else if (isCompleted) {
+                        actionHtml = `<button class="btn-action-meter" data-id="${booking.id}">LOG WATER</button>`;
+                    } else {
+                        actionHtml = `<span style="font-size: 11px; font-weight: 800; color: var(--forest-deep); background: var(--aqua-tint); padding: 5px 10px; border-radius: 99px; border: 1px solid var(--border-accent);">UPCOMING</span>`;
+                    }
+
+                    item.innerHTML = `
+                        <div class="booking-card-left">
+                            <span class="booking-card-pump">${pump ? pump.name : 'Pump ' + booking.pump_id} · ${booking.start_time.substring(0, 5)}–${booking.end_time.substring(0, 5)}</span>
+                            <span class="booking-card-details">Reserved by ${booking.farmer_name}</span>
+                        </div>
+                        <div>${actionHtml}</div>
+                    `;
+
+                    const logBtn = item.querySelector('.btn-action-meter');
+                    if (logBtn) {
+                        logBtn.addEventListener('click', () => {
+                            openMeterModal(booking);
+                        });
+                    }
+
+                    scheduleBookingsList.appendChild(item);
+                });
+            }
+
+            // --- METER LOGGING MODAL ---
+            function openMeterModal(booking) {
+                activeMeterBooking = booking;
+                const pump = appState.pumps.find(p => p.id === booking.pump_id);
+                meterModalBookingInfo.textContent = `${pump ? pump.name : 'Pump ' + booking.pump_id} · ${booking.start_time.substring(0, 5)}–${booking.end_time.substring(0, 5)} · ${booking.farmer_name}`;
+
+                meterStartInput.value = '';
+                meterEndInput.value = '';
+                meterCalculatedLiters.textContent = '0 L';
+                meterErrorMsg.style.display = 'none';
+
+                modalLogMeter.classList.add('visible');
+                meterStartInput.focus();
+            }
+
+            function calculateMeterDifference() {
+                const start = parseFloat(meterStartInput.value) || 0;
+                const end = parseFloat(meterEndInput.value) || 0;
+
+                if (end > start) {
+                    const diff = Math.round((end - start) * 100) / 100;
+                    meterCalculatedLiters.textContent = `${diff.toLocaleString()} L`;
+                    meterErrorMsg.style.display = 'none';
+                    return diff;
+                } else {
+                    meterCalculatedLiters.textContent = '0 L';
+                    if (meterEndInput.value !== '' && end <= start) {
+                        meterErrorMsg.style.display = 'block';
+                    } else {
+                        meterErrorMsg.style.display = 'none';
+                    }
+                    return 0;
+                }
+            }
+
+            async function submitMeterLog() {
+                if (!activeMeterBooking) return;
+                const start = parseFloat(meterStartInput.value);
+                const end = parseFloat(meterEndInput.value);
+
+                if (isNaN(start) || isNaN(end) || end <= start) {
+                    meterErrorMsg.style.display = 'block';
+                    return;
+                }
+
+                const liters = Math.round((end - start) * 100) / 100;
+                const newLog = {
+                    id: 'ml_' + Date.now().toString(36),
+                    booking_id: activeMeterBooking.id,
+                    pump_id: activeMeterBooking.pump_id,
+                    farmer_name: activeMeterBooking.farmer_name,
+                    farmer_device_id: deviceId,
+                    date: activeMeterBooking.booking_date,
+                    start_reading: start,
+                    end_reading: end,
+                    liters: liters,
+                    created_at: new Date().toISOString()
+                };
+
+                if (hasCloudCredentials() && navigator.onLine) {
+                    try {
+                        await supabaseRequest('meter_logs', {
+                            method: 'POST',
+                            body: JSON.stringify(newLog)
+                        });
+                    } catch (e) {
+                        console.warn('Meter log cloud upload error:', e.message);
+                    }
+                }
+
+                appState.meterLogs.push(newLog);
+                persistLocalCache();
+                modalLogMeter.classList.remove('visible');
+
+                showToast(`✓ WATER LOGGED: ${liters.toLocaleString()} L`);
+                updateWaterUI();
+                renderSchedule();
+                syncFromCloud();
+            }
+
+            // --- REPORTING SYSTEM ---
+            function openReportModal(type) {
+                currentReportType = type;
+                reportModalTitle.textContent = (type === 'broken') ? 'REPORT PUMP MALFUNCTION' : 'REPORT TIME OVERRUN';
+                reportFarmerName.value = inputFarmerName.value.trim();
+                reportNoteInput.value = '';
+                modalSubmitReport.classList.add('visible');
+            }
+
+            async function submitReport() {
+                const pumpId = parseInt(reportPumpSelect.value, 10);
+                const reporterName = reportFarmerName.value.trim() || 'Anonymous Farmer';
+                const note = reportNoteInput.value.trim();
+
+                const newReport = {
+                    id: 'rep_' + Date.now().toString(36),
+                    pump_id: pumpId,
+                    type: currentReportType,
+                    farmer_name: reporterName,
+                    farmer_device_id: deviceId,
+                    note: note,
+                    status: 'active',
+                    created_at: new Date().toISOString()
+                };
+
+                if (currentReportType === 'broken') {
+                    const pump = appState.pumps.find(p => p.id === pumpId);
+                    if (pump) {
+                        pump.status = 'broken';
+                    }
+                }
+
+                if (hasCloudCredentials() && navigator.onLine) {
+                    try {
+                        await supabaseRequest('reports', {
+                            method: 'POST',
+                            body: JSON.stringify(newReport)
+                        });
+                        if (currentReportType === 'broken') {
+                            await supabaseRequest(`pumps?id=eq.${pumpId}`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({ status: 'broken', updated_at: new Date().toISOString() })
+                            }).catch(() => {});
+                        }
+                    } catch (err) {
+                        console.warn('Report cloud submission error:', err);
+                    }
+                }
+
+                appState.reports.unshift(newReport);
+                persistLocalCache();
+                modalSubmitReport.classList.remove('visible');
+
+                showToast(`Report filed. Community notified.`);
+                renderAll();
+                syncFromCloud();
+            }
+
+            function renderActiveReports() {
+                activeReportsContainer.innerHTML = '';
+                const active = appState.reports.filter(r => r.status === 'active');
+
+                if (active.length === 0) {
+                    activeReportsContainer.innerHTML = `<div style="text-align: center; color: var(--ink-muted); font-size: 13px; font-weight: 700; padding: 16px;">No active issues reported. All community pumps operating smoothly.</div>`;
+                    return;
+                }
+
+                active.forEach(rep => {
+                    const pump = appState.pumps.find(p => p.id === rep.pump_id);
+                    const item = document.createElement('div');
+                    item.className = `report-item ${rep.type === 'time_overrun' ? 'overrun' : ''}`;
+
+                    const elapsed = getRelativeTimeString(rep.created_at);
+
+                    item.innerHTML = `
+                        <div class="report-item-title">
+                            <span>${pump ? pump.name : 'Pump ' + rep.pump_id} · ${rep.type === 'broken' ? 'MALFUNCTION' : 'OVERRUN'}</span>
+                            <span style="font-size: 11px; font-weight: 800; color: var(--ink-muted);">${elapsed}</span>
+                        </div>
+                        <div class="report-item-meta">
+                            Reported by ${rep.farmer_name} ${rep.note ? '— "' + rep.note + '"' : ''}
+                        </div>
+                    `;
+
+                    activeReportsContainer.appendChild(item);
+                });
+            }
+
+            function getRelativeTimeString(isoStr) {
+                if (!isoStr) return 'just now';
+                const ms = Date.now() - new Date(isoStr).getTime();
+                const mins = Math.floor(ms / 60000);
+                if (mins < 1) return 'just now';
+                if (mins < 60) return `${mins} min ago`;
+                const hrs = Math.floor(mins / 60);
+                if (hrs < 24) return `${hrs} hr ago`;
+                return `${Math.floor(hrs / 24)} days ago`;
+            }
+
+            // --- COMMUNITY CONTROL & CLOUD SETTINGS ---
+            function openAdminModal() {
+                adminPasscodeInput.value = '';
+                cfgSupabaseUrl.value = supabaseUrl;
+                cfgSupabaseKey.value = supabaseAnonKey;
+                renderAdminRestorationList();
+                modalCommunityControl.classList.add('visible');
+            }
+
+            function renderAdminRestorationList() {
+                adminPumpsRestoreList.innerHTML = '';
+                const brokenPumps = appState.pumps.filter(p => p.status === 'broken');
+
+                if (brokenPumps.length === 0) {
+                    adminPumpsRestoreList.innerHTML = `<div style="font-size: 13px; color: var(--status-avail-text); font-weight: 800;">No pumps currently broken.</div>`;
+                    return;
+                }
+
+                brokenPumps.forEach(pump => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#FFF5F5; padding:10px 12px; border-radius:10px; border:1px solid var(--status-broken-border);';
+                    row.innerHTML = `
+                        <span style="font-size: 13px; font-weight: 900; color: var(--status-broken-border);">${pump.name} (Broken)</span>
+                        <button class="btn-modal-submit" style="height: 38px; padding: 0 14px; font-size: 12px;" data-restore-id="${pump.id}">Restore to Available</button>
+                    `;
+
+                    row.querySelector('button').addEventListener('click', async () => {
+                        const passcode = adminPasscodeInput.value.trim();
+                        if (passcode !== 'aquashare2026') {
+                            showToast('Invalid passcode. Use aquashare2026', true);
+                            return;
+                        }
+
+                        if (hasCloudCredentials() && navigator.onLine) {
+                            try {
+                                await supabaseRequest('rpc/restore_pump', {
+                                    method: 'POST',
+                                    body: JSON.stringify({ p_pump_id: pump.id, p_passcode: passcode })
+                                });
+                            } catch (e) {
+                                console.warn('Restore pump cloud error:', e);
+                            }
+                        }
+
+                        pump.status = 'available';
+                        appState.reports.forEach(r => {
+                            if (r.pump_id === pump.id && r.type === 'broken') r.status = 'resolved';
+                        });
+
+                        persistLocalCache();
+                        renderAdminRestorationList();
+                        renderAll();
+                        showToast(`✓ ${pump.name} restored to Available.`);
+                        syncFromCloud();
+                    });
+
+                    adminPumpsRestoreList.appendChild(row);
+                });
+            }
+
+            async function saveCloudSettings() {
+                const url = cfgSupabaseUrl.value.trim();
+                const key = cfgSupabaseKey.value.trim();
+
+                localStorage.setItem('aquashare_sb_url', url);
+                localStorage.setItem('aquashare_sb_key', key);
+                supabaseUrl = url;
+                supabaseAnonKey = key;
+
+                showToast('Connecting to Supabase...');
+                try {
+                    await syncFromCloud();
+                    connectRealtime();
+                    showToast('✓ Successfully connected to Supabase Community Cloud!');
+                    modalCommunityControl.classList.remove('visible');
+                } catch (e) {
+                    showToast(`Connection failed: ${e.message}`, true);
+                }
+            }
+
+            // --- TOAST NOTIFIER ---
+            let toastTimeout = null;
+            function showToast(msg, isError = false) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastMessage.textContent = msg;
+                toastBanner.className = isError ? 'toast-banner visible error' : 'toast-banner visible';
+                toastTimeout = setTimeout(() => {
+                    toastBanner.classList.remove('visible');
+                }, 3500);
+            }
+
+            // --- TAB SWITCHING ---
+            function switchTab(targetTabId) {
+                tabPanels.forEach(panel => {
+                    panel.classList.toggle('active', panel.id === targetTabId);
+                });
+                navButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === targetTabId);
+                });
+
+                if (targetTabId === 'tabPanelBook') {
+                    updateWaterUI();
+                    renderPumps();
+                    renderSlots();
+                    updateBookingDock();
+                } else {
+                    stickyBookingDock.style.display = 'none';
+                }
+
+                if (targetTabId === 'tabPanelSchedule') {
+                    renderSchedule();
+                } else if (targetTabId === 'tabPanelReport') {
+                    renderActiveReports();
+                }
+            }
+
+            // --- RENDER ALL ---
+            function renderAll() {
+                updateWaterUI();
+                renderPumps();
+                renderSlots();
+                updateBookingDock();
+                renderSchedule();
+                renderActiveReports();
+            }
+
+            // --- EVENT LISTENERS ---
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.dataset.tab);
+                });
+            });
+
+            inputFarmerName.addEventListener('input', updateBookingDock);
+            bookingDateInput.value = appState.selectedDate;
+            bookingDateInput.min = getTodayString();
+            bookingDateInput.addEventListener('change', (e) => {
+                appState.selectedDate = e.target.value;
+                appState.selectedSlotId = null;
+                renderSlots();
+                updateBookingDock();
+            });
+
+            btnConfirmBooking.addEventListener('click', handleBookingSubmission);
+            btnViewScheduleFromSuccess.addEventListener('click', () => {
+                modalBookingSuccess.classList.remove('visible');
+                switchTab('tabPanelSchedule');
+            });
+
+            btnReportBroken.addEventListener('click', () => openReportModal('broken'));
+            btnReportOverrun.addEventListener('click', () => openReportModal('time_overrun'));
+            btnCancelReport.addEventListener('click', () => modalSubmitReport.classList.remove('visible'));
+            btnSubmitReportConfirm.addEventListener('click', submitReport);
+
+            meterStartInput.addEventListener('input', calculateMeterDifference);
+            meterEndInput.addEventListener('input', calculateMeterDifference);
+            btnCancelMeterLog.addEventListener('click', () => modalLogMeter.classList.remove('visible'));
+            btnSubmitMeterLog.addEventListener('click', submitMeterLog);
+
+            syncStatusBadge.addEventListener('click', openAdminModal);
+            btnAdminControl.addEventListener('click', openAdminModal);
+            btnCloseAdminModal.addEventListener('click', () => modalCommunityControl.classList.remove('visible'));
+            btnSaveCloudConfig.addEventListener('click', saveCloudSettings);
+
+            function updateClock() {
+                const d = new Date();
+                let hrs = d.getHours();
+                const mins = String(d.getMinutes()).padStart(2, '0');
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                hrs = hrs % 12 || 12;
+                liveClockBadge.textContent = `${hrs}:${mins} ${ampm}`;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            setInterval(() => {
+                if (navigator.onLine && hasCloudCredentials()) {
+                    syncFromCloud();
+                }
+            }, 8000);
+
+            window.addEventListener('online', () => {
+                appState.isOnline = true;
+                updateConnectionStatus(true);
+                syncFromCloud();
+                connectRealtime();
+                showToast('● Back online. Syncing community schedule...');
+            });
+            window.addEventListener('offline', () => {
+                appState.isOnline = false;
+                updateConnectionStatus(false);
+                showToast('○ You are offline. Showing cached community data.', true);
+            });
+
+            renderRecentFarmers();
+            renderAll();
+            syncFromCloud();
+            connectRealtime();
+
+            // Expose for testing and QA
+            window.AquaShareV2 = {
+                appState,
+                handleBookingSubmission,
+                submitMeterLog,
+                openMeterModal,
+                submitReport,
+                syncFromCloud,
+                setDeviceId,
+                DAILY_LIMIT_LITERS
+            };
+
+        })();
+    </script>
+</body>
+
+</html>
