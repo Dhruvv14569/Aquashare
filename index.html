@@ -8,6 +8,9 @@
     <meta name="description" content="AquaShare — Community groundwater pump scheduling and water tracking for rural farmers.">
     <title>AquaShare — Community Groundwater</title>
 
+    <!-- Supabase JavaScript SDK via official CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* ====================================================================
            AQUASHARE — HANDCRAFTED RURAL DESIGN SYSTEM
@@ -72,6 +75,23 @@
             width: 100%;
         }
 
+        /* Offline Fallback Pill (Sticky top amber indicator) */
+        .offline-sticky-pill {
+            display: none;
+            background-color: #FEF3C7;
+            border-bottom: 1.5px solid #F59E0B;
+            color: #92400E;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            padding: 7px 12px;
+            letter-spacing: 0.01em;
+            box-shadow: 0 1px 4px rgba(245, 158, 11, 0.15);
+        }
+        .offline-sticky-pill.visible {
+            display: block;
+        }
+
         /* Danger Banner: Sticky full-width red when limit reached */
         .water-danger-banner {
             display: none;
@@ -96,22 +116,23 @@
             padding: 10px 14px;
             font-size: 12.5px;
             font-weight: 700;
-            text-align: center;
             line-height: 1.4;
-            letter-spacing: 0.01em;
-            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.35);
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
         .pump-failure-alert.visible {
             display: block;
         }
 
-        /* Safe Pill: Small green pill at top when under limit */
+        /* Safe Bar: Compact earthy pill at top */
         .water-safe-bar {
-            display: flex;
-            justify-content: center;
-            padding: 8px 12px;
             background-color: var(--bg-canvas);
             border-bottom: 1px solid var(--border-color);
+            padding: 7px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .water-safe-bar.hidden {
             display: none;
@@ -120,35 +141,37 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background-color: var(--primary-light);
-            border: 1px solid #B7D9C7;
-            color: var(--primary);
-            padding: 5px 12px;
-            border-radius: 20px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 3px 12px;
             font-size: 12px;
+            color: var(--text-muted);
             font-weight: 600;
         }
         .water-safe-pill strong {
-            font-weight: 700;
+            color: var(--primary);
         }
 
         /* -------------------------------------------------------------
-           APP BRAND HEADER (Centered Lockup, Inline SVG, Fix 4)
+           BRAND HEADER (Fix 4: Centered Lockup, 32x32 Inline SVG)
            ------------------------------------------------------------- */
         .app-header {
             background-color: #FFFFFF;
             border-bottom: 1px solid var(--border-color);
-            padding: 12px 16px;
+            padding: 14px 16px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 6px;
             position: relative;
         }
         .brand-block {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
-            text-align: left;
         }
         .brand-svg-mark {
             width: 32px;
@@ -159,82 +182,102 @@
         .brand-text {
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
         }
         .brand-title {
-            font-size: 19px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: #1A1A1A;
-            line-height: 1.15;
-            margin: 0;
-            letter-spacing: -0.01em;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
         }
         .brand-sub {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 9.5px;
+            font-weight: 700;
             color: #2D6A4F;
-            font-variant: small-caps;
-            letter-spacing: 0.06em;
-            line-height: 1.2;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 1px;
         }
         .header-status-badge {
-            position: absolute;
-            right: 14px;
-            font-size: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 10.5px;
             font-weight: 700;
             color: var(--primary);
-            background-color: var(--primary-light);
-            padding: 3px 7px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            letter-spacing: 0.02em;
         }
         .pulse-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
+            background-color: #2D6A4F;
             border-radius: 50%;
-            background-color: var(--primary);
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        .pulse-dot.amber {
+            background-color: #F59E0B;
+            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+            animation: pulse-amber 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(45, 106, 79, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(45, 106, 79, 0); }
+        }
+        @keyframes pulse-amber {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
 
         /* -------------------------------------------------------------
-           MAIN CONTENT AREA & TAB PANELS
+           VIEWPORT & CARDS
            ------------------------------------------------------------- */
         .main-content {
             flex: 1;
-            padding: 16px;
-            padding-bottom: 90px;
+            padding: 16px 14px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .tab-panel {
             display: none;
+            flex-direction: column;
+            gap: 16px;
         }
         .tab-panel.active {
-            display: block;
-        }
-
-        /* -------------------------------------------------------------
-           TYPOGRAPHY & CARD COMPONENTS
-           ------------------------------------------------------------- */
-        .section-header {
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 8px;
+            display: flex;
         }
 
         .card {
-            background: var(--card-bg);
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             padding: 16px;
-            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .section-header {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.01em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         /* -------------------------------------------------------------
-           FORM ELEMENTS & BUTTONS
+           FORM CONTROLS (HIGH ACCESSIBILITY & CONTRAST)
            ------------------------------------------------------------- */
         .form-label {
             display: block;
@@ -245,28 +288,160 @@
         }
 
         input[type="text"],
-        input[type="date"],
         input[type="number"],
+        input[type="date"],
+        input[type="url"],
         select,
         textarea {
             width: 100%;
+            background-color: #FFFFFF;
             border: 1.5px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
+            padding: 12px 14px;
             font-size: 15px;
-            font-family: inherit;
             color: var(--text-main);
-            background-color: #FFFFFF;
-            box-sizing: border-box;
             outline: none;
             transition: border-color 0.15s ease;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
         }
-        input:focus,
-        select:focus,
-        textarea:focus {
+
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235C5549' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            padding-right: 38px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.12);
+        }
+
+        /* Farmer Name Quick Chips */
+        .recent-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .farmer-pill {
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .farmer-pill:hover, .farmer-pill:active {
+            background-color: var(--primary-light);
+            color: var(--primary);
             border-color: var(--primary);
         }
 
+        /* -------------------------------------------------------------
+           PUMP SELECTION CARDS
+           ------------------------------------------------------------- */
+        .pumps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pump-card {
+            background-color: #FFFFFF;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s ease;
+        }
+        .pump-card:active {
+            transform: scale(0.99);
+        }
+        .pump-card.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        .pump-card.broken {
+            border-color: var(--danger);
+            background-color: var(--danger-light);
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .pump-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pump-num-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+        }
+        .pump-card.selected .pump-num-badge {
+            background-color: var(--primary);
+            color: #FFFFFF;
+            border-color: var(--primary);
+        }
+        .pump-card.broken .pump-num-badge {
+            background-color: var(--danger);
+            color: #FFFFFF;
+            border-color: var(--danger);
+        }
+
+        .pump-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .pump-spec {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .pump-status-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .status-tag-available {
+            background-color: #E6F4EA;
+            color: #137333;
+        }
+        .status-tag-busy {
+            background-color: #FEF7E0;
+            color: #B06000;
+        }
+        .status-tag-broken {
+            background-color: #FCE8E6;
+            color: var(--danger);
+        }
+
+        /* -------------------------------------------------------------
+           BUTTONS
+           ------------------------------------------------------------- */
         .btn-primary {
             background-color: var(--primary);
             color: #FFFFFF;
@@ -332,8 +507,8 @@
             padding: 12px 14px;
             font-size: 13px;
             font-weight: 600;
-            margin-top: 12px;
             line-height: 1.4;
+            margin-top: 12px;
         }
         .inline-error.visible {
             display: block;
@@ -345,149 +520,37 @@
             border: 1.5px solid var(--primary);
             color: var(--primary);
             border-radius: 8px;
-            padding: 14px;
-            margin-top: 14px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-top: 12px;
         }
         .inline-success.visible {
             display: block;
         }
 
         /* -------------------------------------------------------------
-           BOOKING TAB COMPONENTS
-           ------------------------------------------------------------- */
-        .recent-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        .farmer-pill {
-            background-color: var(--bg-canvas);
-            border: 1px solid var(--border-color);
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 12px;
-            color: var(--text-muted);
-            cursor: pointer;
-        }
-        .farmer-pill:hover,
-        .farmer-pill:active {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Vertical Pump Selection Cards */
-        .pumps-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .pump-card {
-            background-color: #FFFFFF;
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .pump-card:hover {
-            border-color: var(--primary);
-        }
-        .pump-card.selected {
-            border-color: var(--primary);
-            background-color: var(--primary-light);
-        }
-        .pump-card.broken {
-            opacity: 0.65;
-            background-color: #FAF5F5;
-            border-color: #E2B9BC;
-            cursor: not-allowed;
-        }
-        .pump-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .pump-num-badge {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background-color: var(--bg-canvas);
-            border: 1px solid var(--border-color);
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .pump-card.selected .pump-num-badge {
-            background-color: var(--primary);
-            color: #FFFFFF;
-            border-color: var(--primary);
-        }
-        .pump-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-        .pump-spec {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .pump-status-tag {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-        .status-tag-available {
-            background-color: var(--primary-light);
-            color: var(--primary);
-            border: 1px solid #B7D9C7;
-        }
-        .status-tag-busy {
-            background-color: var(--accent-light);
-            color: #C06B1C;
-            border: 1px solid #F6CCA7;
-        }
-        .status-tag-broken {
-            background-color: var(--danger-light);
-            color: var(--danger);
-            border: 1px solid #F5B0B6;
-            font-size: 10px;
-            max-width: 140px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* -------------------------------------------------------------
-           SCHEDULE TAB — HORIZONTAL TIMELINE & RESERVATIONS
+           SCHEDULE TIMELINE CANVAS & ROW STYLES (Fix 2)
            ------------------------------------------------------------- */
         .timeline-wrapper {
             background-color: #FFFFFF;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            padding: 14px;
-            margin-bottom: 16px;
+            padding: 16px;
+            overflow: hidden;
         }
         .timeline-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 12px;
         }
         .timeline-legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
             font-size: 11px;
+            color: var(--text-muted);
             margin-bottom: 14px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border-light);
@@ -495,8 +558,8 @@
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
-            color: var(--text-muted);
+            gap: 5px;
+            font-weight: 600;
         }
         .legend-box {
             width: 12px;
@@ -576,41 +639,46 @@
         }
         .timeline-slot-block.active {
             background-color: var(--accent);
-            border-color: #E28C47;
+            border-color: #D98236;
             color: #FFFFFF;
+            box-shadow: 0 0 0 1.5px rgba(244, 162, 97, 0.5);
         }
         .timeline-slot-block.completed {
-            background-color: var(--status-grey);
-            border-color: #726A5E;
-            color: #FFFFFF;
+            background-color: #E2DFD8;
+            border-color: #C8C0B2;
+            color: #554F44;
         }
         .timeline-slot-block.broken {
             background-color: var(--danger);
-            border-color: #C92A37;
+            border-color: #B9202D;
             color: #FFFFFF;
         }
         .timeline-slot-block.interrupted {
-            background-color: var(--danger);
-            border-color: #C92A37;
-            color: #FFFFFF;
+            background-color: var(--danger-light);
+            border: 1.5px dashed var(--danger);
+            color: var(--danger);
             font-weight: 700;
         }
         .timeline-slot-block.missed {
             background-color: var(--accent-light);
             border: 1.5px solid var(--accent);
-            color: #C06B1C;
+            color: #B45309;
+            font-weight: 700;
         }
 
-        /* Reservations List */
+        /* -------------------------------------------------------------
+           RESERVATIONS LIST & METER LOG BUTTON
+           ------------------------------------------------------------- */
         .reservation-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border-light);
         }
         .reservation-item:last-child {
             border-bottom: none;
+            padding-bottom: 0;
         }
         .res-info-main {
             font-size: 14px;
@@ -620,28 +688,30 @@
         .res-info-sub {
             font-size: 12px;
             color: var(--text-muted);
+            margin-top: 2px;
         }
         .btn-log-meter {
             background-color: var(--primary-light);
-            border: 1px solid #B7D9C7;
+            border: 1px solid var(--primary);
             color: var(--primary);
+            padding: 6px 12px;
             border-radius: 6px;
-            padding: 6px 10px;
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
         }
         .pill-logged {
-            font-size: 12px;
+            background-color: #E6F4EA;
+            border: 1px solid #137333;
+            color: #137333;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
             font-weight: 700;
-            color: var(--primary);
-            background-color: var(--primary-light);
-            padding: 4px 8px;
-            border-radius: 6px;
         }
 
         /* -------------------------------------------------------------
-           REPORT TAB COMPONENTS
+           REPORT TAB (ACCORDION & ACTIVE ALERTS)
            ------------------------------------------------------------- */
         .report-big-card {
             background-color: #FFFFFF;
@@ -653,15 +723,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             transition: all 0.15s ease;
-        }
-        .report-big-card:hover {
-            border-color: var(--primary);
         }
         .report-big-card.active {
             border-color: var(--primary);
-            background-color: #FAF8F4;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            background-color: #FAF8F5;
         }
         .report-card-title {
             font-size: 15px;
@@ -673,10 +741,11 @@
             color: var(--text-muted);
             margin-top: 2px;
         }
+
         .report-inline-form {
             display: none;
-            background-color: #FFFFFF;
-            border: 1.5px solid var(--border-color);
+            background-color: #FAF8F5;
+            border: 1.5px solid var(--primary);
             border-top: none;
             border-radius: 0 0 12px 12px;
             padding: 16px;
@@ -699,54 +768,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 6px;
-        }
-
-        /* -------------------------------------------------------------
-           BOTTOM NAVIGATION
-           ------------------------------------------------------------- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 420px;
-            background-color: #FFFFFF;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 6px 0 env(safe-area-inset-bottom, 8px);
-            z-index: 50;
-        }
-        .nav-button {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            padding: 6px 0 4px;
-            color: #736B5E;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            position: relative;
-            gap: 4px;
-        }
-        .nav-button.active {
-            color: var(--primary);
-            font-weight: 700;
-        }
-        .nav-button.active::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 25%;
-            right: 25%;
-            height: 3px;
-            background-color: var(--primary);
-            border-radius: 2px;
         }
 
         /* -------------------------------------------------------------
@@ -798,7 +819,55 @@
         }
 
         /* -------------------------------------------------------------
-           MODAL DIALOGS (METER LOGGING ONLY)
+           BOTTOM NAVIGATION
+           ------------------------------------------------------------- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
+            background-color: #FFFFFF;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 env(safe-area-inset-bottom, 8px);
+            z-index: 50;
+        }
+        .nav-button {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            padding: 6px 0 4px;
+            color: #736B5E;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            position: relative;
+            gap: 4px;
+        }
+        .nav-button.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .nav-button.active::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 25%;
+            right: 25%;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* -------------------------------------------------------------
+           MODAL DIALOGS (METER LOGGING & SUPABASE SETUP)
            ------------------------------------------------------------- */
         .modal-overlay {
             display: none;
@@ -819,62 +888,120 @@
         .modal-card {
             background-color: #FFFFFF;
             border-radius: 12px;
+            padding: 20px 16px;
             width: 100%;
-            max-width: 380px;
-            padding: 20px;
+            max-width: 360px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
-        /* Quick toast notification */
+        /* Supabase One-Time Setup Modal */
+        .setup-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(26, 26, 26, 0.65);
+            z-index: 150;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            backdrop-filter: blur(2px);
+        }
+        .setup-modal-overlay.visible {
+            display: flex;
+        }
+        .setup-card {
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px 18px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer Connection Status & Reset Link */
+        .app-footer-bar {
+            text-align: center;
+            padding: 16px 14px 28px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            border-top: 1px dashed var(--border-color);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-reset-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 2px 4px;
+        }
+
+        /* -------------------------------------------------------------
+           TOAST NOTIFICATION (Center Pop)
+           ------------------------------------------------------------- */
         .toast {
             position: fixed;
             bottom: 74px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(30px);
             background-color: #1A1A1A;
             color: #FFFFFF;
-            padding: 11px 18px;
-            border-radius: 20px;
+            padding: 10px 18px;
+            border-radius: 999px;
             font-size: 13px;
             font-weight: 600;
+            z-index: 90;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
-            z-index: 90;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: normal;
             max-width: 90%;
-            width: max-content;
             text-align: center;
-            line-height: 1.4;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
         }
         .toast.visible {
             opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 
 <body>
+
     <div class="app-shell">
 
         <!-- =========================================================
-             STICKY NOTIFICATION BANNERS
+             STICKY TOP BANNERS
              ========================================================= -->
         <div class="water-banner-wrapper">
-            <!-- Pump Failure Mid-Session Alert (Fix 3.3) -->
-            <div id="pumpFailureStickyAlert" class="pump-failure-alert">
-                <!-- Dynamic Mid-Session Pump Alert -->
+            <!-- Offline Fallback Sticky Pill -->
+            <div id="offlineStickyPill" class="offline-sticky-pill">
+                📴 Offline mode — data syncs when connection returns
             </div>
 
-            <!-- Limit Reached: Full-width sticky red banner (Fix 3.4) -->
+            <!-- Pump Failure Mid-Session Alert (Fix 3.3) -->
+            <div id="pumpFailureStickyAlert" class="pump-failure-alert"></div>
+
+            <!-- Danger: Sticky red when limit >= 50,000 L (Fix 3.4) -->
             <div id="waterDangerBanner" class="water-danger-banner">
-                🚨 Daily water limit reached (50,000 L) — booking paused
+                🚨 COMMUNITY WATER QUOTA REACHED (50,000 L) — BOOKINGS PAUSED
             </div>
 
             <!-- Normal: Small green pill at top -->
             <div id="waterSafeBar" class="water-safe-bar">
                 <div class="water-safe-pill">
                     <span>💧</span>
-                    <span>Community: <strong id="dailyWaterText">12,400 L</strong> / 50,000 L used today</span>
+                    <span>Community: <strong id="dailyWaterText">0 L</strong> / 50,000 L used today</span>
                 </div>
             </div>
         </div>
@@ -894,9 +1021,9 @@
                     <div class="brand-sub">Community Water · Est. 2026</div>
                 </div>
             </div>
-            <div class="header-status-badge">
-                <span class="pulse-dot"></span>
-                <span>LOCAL ONLY</span>
+            <div class="header-status-badge" id="headerConnectionBadge">
+                <span class="pulse-dot" id="headerStatusDot"></span>
+                <span id="headerStatusLabel">CONNECTING...</span>
             </div>
         </header>
 
@@ -923,7 +1050,7 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: SELECT PUMP -->
+                <!-- STEP 2: SELECT PUMP (Pumps 1-5) -->
                 <div class="card">
                     <div class="section-header">Step 2: Choose Pump</div>
                     <div class="pumps-list" id="pumpSelectionList">
@@ -1005,7 +1132,7 @@
                                 <div>18:00</div>
                             </div>
 
-                            <!-- Pump Rows with Vertical Current Time Line -->
+                            <!-- Pump Rows with isolated broken line (Fix 2) -->
                             <div class="timeline-rows" id="timelineRowsContainer">
                                 <!-- Dynamic rows rendered via JS -->
                             </div>
@@ -1090,6 +1217,13 @@
 
             </section>
 
+            <!-- FOOTER CONNECTION STATUS & RESET LINK -->
+            <footer class="app-footer-bar">
+                <span id="footerConnectionText">● Realtime Sync Active</span>
+                <span>·</span>
+                <button type="button" class="btn-reset-link" id="btnResetConnection">⚙ Reset connection</button>
+            </footer>
+
         </main>
 
         <!-- =========================================================
@@ -1151,20 +1285,68 @@
             </div>
         </div>
 
+        <!-- =========================================================
+             MODAL: ONE-TIME SUPABASE DATABASE SETUP
+             ========================================================= -->
+        <div id="modalSupabaseSetup" class="setup-modal-overlay">
+            <div class="setup-card">
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <svg width="36" height="36" viewBox="0 0 32 32" fill="none" style="margin: 0 auto 6px; display: block;">
+                        <path d="M16 3C16 3 7.5 13.5 7.5 20.2C7.5 24.8 11.3 28.5 16 28.5C20.7 28.5 24.5 24.8 24.5 20.2C24.5 13.5 16 3 16 3Z" fill="#2D6A4F"/>
+                        <line x1="7" y1="18.5" x2="25" y2="18.5" stroke="#F4A261" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+                    <h2 style="font-size: 17px; font-weight: 800; color: #1A1A1A;">Connect Supabase Database</h2>
+                    <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
+                        Enable real-time shared bookings & water tracking across all farmers' phones.
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label class="form-label" for="setupSupabaseUrl">Supabase Project URL</label>
+                    <input type="url" id="setupSupabaseUrl" placeholder="https://your-project.supabase.co" autocomplete="off" />
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label" for="setupSupabaseKey">Supabase Anon Public Key</label>
+                    <input type="text" id="setupSupabaseKey" placeholder="eyJhbGciOi..." autocomplete="off" />
+                </div>
+
+                <div id="setupErrorMsg" class="inline-error" style="margin-bottom: 12px; margin-top: 0;"></div>
+
+                <button type="button" class="btn-primary" id="btnConnectSupabase" style="width: 100%; margin-bottom: 8px;">
+                    Connect
+                </button>
+                <button type="button" class="btn-secondary" id="btnSkipSetup" style="width: 100%; font-size: 12px; padding: 8px;">
+                    Continue in Offline / Demo Mode
+                </button>
+
+                <div style="font-size: 10.5px; color: var(--text-muted); text-align: center; margin-top: 10px; line-height: 1.3;">
+                    Get these free from Supabase: Project Settings → API
+                </div>
+            </div>
+        </div>
+
         <!-- QUICK TOAST NOTIFICATION -->
         <div id="toastNotification" class="toast">Action completed</div>
 
     </div>
 
     <!-- =========================================================
-         PURE JAVASCRIPT APPLICATION LOGIC
-         Zero external dependencies, localStorage persistence only
+         JAVASCRIPT APPLICATION LOGIC
+         Supabase Real-Time Backend with Offline LocalStorage Fallback
          ========================================================= -->
     <script>
         (function() {
             'use strict';
 
-            const STORAGE_KEY = 'aquashare_v2_data';
+            // Constants
+            const STORAGE_CONFIG_URL = 'aquashare_supabase_url';
+            const STORAGE_CONFIG_KEY = 'aquashare_supabase_key';
+            const STORAGE_FARMER_NAME = 'aquashare_current_farmer';
+            const STORAGE_ACTIVE_TAB = 'aquashare_active_tab';
+            const STORAGE_OFFLINE_QUEUE = 'aquashare_offline_queue';
+            const STORAGE_CACHE = 'aquashare_v2_cache';
+
             const DAILY_LIMIT_LITERS = 50000;
 
             const STANDARD_SLOTS = [
@@ -1177,27 +1359,42 @@
                 '18:00 - 20:00'
             ];
 
-            // Core Application State
+            // 5 Community Pumps (matching pump_id integer 1–5 in database)
+            const COMMUNITY_PUMPS = [
+                { id: 1, num: '01', name: 'North Well', spec: 'Solar Submersible · 15 HP' },
+                { id: 2, num: '02', name: 'South Borewell', spec: 'Electric Submersible · 12.5 HP' },
+                { id: 3, num: '03', name: 'River Intake', spec: 'Electric Centrifugal · 20 HP' },
+                { id: 4, num: '04', name: 'East Borewell', spec: 'Solar Submersible · 10 HP' },
+                { id: 5, num: '05', name: 'Canal Lift Pump', spec: 'Diesel Centrifugal · 25 HP' }
+            ];
+
+            // Application Memory State
             let appState = {
-                pumps: [
-                    { id: 'p1', num: '01', name: 'North Well', spec: 'Solar Submersible · 15 HP' },
-                    { id: 'p2', num: '02', name: 'South Borewell', spec: 'Electric Submersible · 12.5 HP' },
-                    { id: 'p3', num: '03', name: 'River Intake', spec: 'Electric Centrifugal · 20 HP' }
-                ],
+                pumps: COMMUNITY_PUMPS,
                 bookings: [],
-                meterLogs: [],
                 reports: [],
-                recentFarmers: ['Ramesh', 'Suresh', 'Kavitha', 'Balram']
+                waterLogs: [],
+                recentFarmers: ['Ramesh', 'Suresh', 'Kavitha', 'Balram'],
+                todayWaterTotal: 0
             };
 
+            let supabaseClient = null;
+            let realtimeChannel = null;
+            let isOffline = false;
             let selectedPumpId = null;
             let activeMeterBooking = null;
 
             // DOM Elements
+            const offlineStickyPill = document.getElementById('offlineStickyPill');
             const waterDangerBanner = document.getElementById('waterDangerBanner');
             const pumpFailureStickyAlert = document.getElementById('pumpFailureStickyAlert');
             const waterSafeBar = document.getElementById('waterSafeBar');
             const dailyWaterText = document.getElementById('dailyWaterText');
+
+            const headerStatusDot = document.getElementById('headerStatusDot');
+            const headerStatusLabel = document.getElementById('headerStatusLabel');
+            const footerConnectionText = document.getElementById('footerConnectionText');
+            const btnResetConnection = document.getElementById('btnResetConnection');
 
             const tabPanels = document.querySelectorAll('.tab-panel');
             const navButtons = document.querySelectorAll('.nav-button');
@@ -1249,10 +1446,17 @@
             const btnCancelMeterLog = document.getElementById('btnCancelMeterLog');
             const btnSubmitMeterLog = document.getElementById('btnSubmitMeterLog');
 
+            const modalSupabaseSetup = document.getElementById('modalSupabaseSetup');
+            const setupSupabaseUrl = document.getElementById('setupSupabaseUrl');
+            const setupSupabaseKey = document.getElementById('setupSupabaseKey');
+            const setupErrorMsg = document.getElementById('setupErrorMsg');
+            const btnConnectSupabase = document.getElementById('btnConnectSupabase');
+            const btnSkipSetup = document.getElementById('btnSkipSetup');
+
             const toastNotification = document.getElementById('toastNotification');
 
             // -------------------------------------------------------------
-            // DATE HELPERS
+            // DATE & TIME HELPERS
             // -------------------------------------------------------------
             function getTodayDateString() {
                 const now = new Date();
@@ -1263,83 +1467,366 @@
             }
 
             function parseSlotMinutes(slot) {
-                if (!slot) return { startMin: 0, endMin: 0 };
-                const [startStr, endStr] = slot.split(' - ');
+                if (!slot) return { startMin: 0, endMin: 0, startStr: '00:00', endStr: '00:00' };
+                const [startStr, endStr] = slot.split(' - ').map(s => s.trim());
                 const [sH, sM] = startStr.split(':').map(Number);
                 const [eH, eM] = endStr.split(':').map(Number);
                 return {
                     startMin: sH * 60 + sM,
-                    endMin: eH * 60 + eM
+                    endMin: eH * 60 + eM,
+                    startStr,
+                    endStr
                 };
             }
 
+            function formatSlotString(start, end) {
+                const s = (start || '').slice(0, 5);
+                const e = (end || '').slice(0, 5);
+                return `${s} - ${e}`;
+            }
+
             // -------------------------------------------------------------
-            // LOCAL STORAGE INITIALIZATION & SEED
+            // CACHE & LOCALSTORAGE PERSISTENCE
             // -------------------------------------------------------------
-            function loadState() {
+            function loadCache() {
                 try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
+                    const raw = localStorage.getItem(STORAGE_CACHE);
                     if (raw) {
                         const parsed = JSON.parse(raw);
-                        if (parsed && Array.isArray(parsed.pumps)) {
-                            appState = parsed;
-                            return;
+                        if (parsed) {
+                            if (Array.isArray(parsed.bookings)) appState.bookings = parsed.bookings;
+                            if (Array.isArray(parsed.reports)) appState.reports = parsed.reports;
+                            if (Array.isArray(parsed.waterLogs)) appState.waterLogs = parsed.waterLogs;
+                            if (Array.isArray(parsed.recentFarmers)) appState.recentFarmers = parsed.recentFarmers;
+                            if (typeof parsed.todayWaterTotal === 'number') appState.todayWaterTotal = parsed.todayWaterTotal;
                         }
                     }
                 } catch (e) {
-                    console.warn('Could not parse saved state, using default:', e);
+                    console.warn('Could not parse cached state:', e);
                 }
 
-                // Initial Seed: realistic community data matching brief
-                const today = getTodayDateString();
-                const sampleBookingId = 'bk_' + Date.now();
-                appState.bookings = [
-                    {
-                        id: sampleBookingId,
-                        pump_id: 'p1',
-                        farmer_name: 'Ramesh',
-                        booking_date: today,
-                        slot: '08:00 - 10:00',
-                        status: 'completed',
-                        created_at: new Date().toISOString()
-                    }
-                ];
-                appState.meterLogs = [
-                    {
-                        id: 'ml_1',
-                        booking_id: sampleBookingId,
-                        pump_id: 'p1',
-                        farmer_name: 'Ramesh',
-                        date: today,
-                        start_reading: 4520,
-                        end_reading: 5760,
-                        liters: 12400,
-                        flagged: true,
-                        timestamp: new Date().toISOString()
-                    }
-                ];
-                saveState();
+                // If cache empty, seed realistic default for offline experience
+                if (appState.bookings.length === 0) {
+                    const today = getTodayDateString();
+                    const seedBookingId = 'seed-bk-1';
+                    appState.bookings = [
+                        {
+                            id: seedBookingId,
+                            pump_id: 1,
+                            farmer_name: 'Ramesh',
+                            date: today,
+                            slot_start: '08:00:00',
+                            slot_end: '10:00:00',
+                            status: 'completed',
+                            meter_start: 4520,
+                            meter_end: 5760,
+                            water_drawn: 12400,
+                            created_at: new Date().toISOString()
+                        }
+                    ];
+                    appState.waterLogs = [
+                        {
+                            id: 'seed-wl-1',
+                            booking_id: seedBookingId,
+                            pump_id: 1,
+                            farmer_name: 'Ramesh',
+                            date: today,
+                            water_drawn: 12400,
+                            flagged: true,
+                            created_at: new Date().toISOString()
+                        }
+                    ];
+                    appState.todayWaterTotal = 12400;
+                    saveCache();
+                }
             }
 
-            function saveState() {
+            function saveCache() {
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                    localStorage.setItem(STORAGE_CACHE, JSON.stringify({
+                        bookings: appState.bookings,
+                        reports: appState.reports,
+                        waterLogs: appState.waterLogs,
+                        recentFarmers: appState.recentFarmers,
+                        todayWaterTotal: appState.todayWaterTotal
+                    }));
                 } catch (e) {
-                    console.error('Storage write error:', e);
+                    console.error('Storage cache write error:', e);
+                }
+            }
+
+            function getOfflineQueue() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_OFFLINE_QUEUE);
+                    return raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function pushOfflineQueue(action) {
+                const q = getOfflineQueue();
+                q.push(action);
+                localStorage.setItem(STORAGE_OFFLINE_QUEUE, JSON.stringify(q));
+                showToast('📴 Saved offline — will sync when connection returns');
+            }
+
+            function clearOfflineQueue() {
+                localStorage.removeItem(STORAGE_OFFLINE_QUEUE);
+            }
+
+            // -------------------------------------------------------------
+            // CONNECTION STATUS UI MANAGEMENT
+            // -------------------------------------------------------------
+            function setOfflineMode(offline, customMsg) {
+                isOffline = offline;
+                if (offline) {
+                    offlineStickyPill.classList.add('visible');
+                    headerStatusDot.className = 'pulse-dot amber';
+                    headerStatusLabel.textContent = 'OFFLINE';
+                    footerConnectionText.textContent = '📴 ' + (customMsg || 'Offline mode (LocalStorage fallback)');
+                    footerConnectionText.style.color = '#B45309';
+                } else {
+                    offlineStickyPill.classList.remove('visible');
+                    headerStatusDot.className = 'pulse-dot';
+                    headerStatusLabel.textContent = 'LIVE SYNC';
+                    footerConnectionText.textContent = '● Realtime Sync Active';
+                    footerConnectionText.style.color = 'var(--primary)';
+                }
+            }
+
+            // -------------------------------------------------------------
+            // SUPABASE CLIENT INITIALIZATION & REALTIME
+            // -------------------------------------------------------------
+            async function testAndInitSupabase(url, key, isManualTest = false) {
+                if (!window.supabase || !window.supabase.createClient) {
+                    throw new Error('Supabase client SDK could not be loaded from CDN.');
+                }
+
+                const client = window.supabase.createClient(url, key, {
+                    auth: { persistSession: false },
+                    realtime: { params: { eventsPerSecond: 10 } }
+                });
+
+                // Test connection by running a lightweight query on bookings table
+                const { data, error } = await client.from('bookings').select('id').limit(1);
+
+                if (error) {
+                    // Check if error is related to credentials or table
+                    throw new Error(error.message || 'Failed to query Supabase bookings table.');
+                }
+
+                supabaseClient = client;
+                localStorage.setItem(STORAGE_CONFIG_URL, url);
+                localStorage.setItem(STORAGE_CONFIG_KEY, key);
+
+                setOfflineMode(false);
+                setupRealtime();
+                await syncAllFromSupabase();
+                await flushOfflineQueue();
+
+                return true;
+            }
+
+            function setupRealtime() {
+                if (!supabaseClient) return;
+
+                try {
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
+
+                    realtimeChannel = supabaseClient.channel('aquashare_realtime')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
+                            handleRealtimeBooking(payload);
+                        })
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, payload => {
+                            handleRealtimeReport(payload);
+                        })
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'water_log' }, payload => {
+                            handleRealtimeWaterLog(payload);
+                        })
+                        .subscribe(status => {
+                            if (status === 'SUBSCRIBED') {
+                                setOfflineMode(false);
+                            } else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') {
+                                console.warn('Supabase Realtime channel status:', status);
+                                setOfflineMode(true, 'Realtime connection paused');
+                            }
+                        });
+                } catch (err) {
+                    console.error('Error establishing Realtime subscription:', err);
+                }
+            }
+
+            // Handle incoming Realtime Booking mutations from other devices
+            function handleRealtimeBooking(payload) {
+                const { eventType, new: newRec, old: oldRec } = payload;
+                if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                    const idx = appState.bookings.findIndex(b => b.id === newRec.id);
+                    if (idx >= 0) {
+                        appState.bookings[idx] = newRec;
+                    } else {
+                        appState.bookings.push(newRec);
+                    }
+                } else if (eventType === 'DELETE') {
+                    appState.bookings = appState.bookings.filter(b => b.id !== oldRec.id);
+                }
+                saveCache();
+                evaluateSlotStatuses();
+                renderSchedule();
+                updateMissedSlotBanner();
+                updatePumpFailureAlert();
+                renderPumpSelection();
+            }
+
+            // Handle incoming Realtime Report mutations from other devices
+            function handleRealtimeReport(payload) {
+                const { eventType, new: newRec, old: oldRec } = payload;
+                if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                    const idx = appState.reports.findIndex(r => r.id === newRec.id);
+                    if (idx >= 0) {
+                        appState.reports[idx] = newRec;
+                    } else {
+                        appState.reports.unshift(newRec);
+                    }
+                } else if (eventType === 'DELETE') {
+                    appState.reports = appState.reports.filter(r => r.id !== oldRec.id);
+                }
+                saveCache();
+                renderActiveReports();
+                renderPumpSelection();
+                evaluateSlotStatuses();
+                renderSchedule();
+                updatePumpFailureAlert();
+            }
+
+            // Handle incoming Realtime Water Log mutations
+            async function handleRealtimeWaterLog() {
+                await fetchTodayWaterTotal();
+                renderSchedule();
+            }
+
+            // Full Sync from Database
+            async function syncAllFromSupabase() {
+                if (!supabaseClient || isOffline) return;
+
+                try {
+                    // 1. Fetch Bookings (last 30 days & upcoming)
+                    const { data: bData, error: bErr } = await supabaseClient
+                        .from('bookings')
+                        .select('*')
+                        .order('date', { ascending: false });
+
+                    if (!bErr && bData) {
+                        appState.bookings = bData;
+                    }
+
+                    // 2. Fetch Reports
+                    const { data: rData, error: rErr } = await supabaseClient
+                        .from('reports')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!rErr && rData) {
+                        appState.reports = rData;
+                    }
+
+                    // 3. Fetch Daily Water Total
+                    await fetchTodayWaterTotal();
+
+                    saveCache();
+                    evaluateSlotStatuses();
+                    renderPumpSelection();
+                    renderSchedule();
+                    renderActiveReports();
+                    updateMissedSlotBanner();
+                    updatePumpFailureAlert();
+                } catch (e) {
+                    console.warn('Sync failed, using offline cache:', e);
+                    setOfflineMode(true);
+                }
+            }
+
+            // Calculate Daily Water Total by querying water_log for today
+            async function fetchTodayWaterTotal() {
+                const today = getTodayDateString();
+
+                if (supabaseClient && !isOffline) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('water_log')
+                            .select('water_drawn')
+                            .eq('date', today);
+
+                        if (!error && data) {
+                            const total = data.reduce((sum, item) => sum + Number(item.water_drawn || 0), 0);
+                            appState.todayWaterTotal = total;
+                            updateDailyWaterBanner();
+                            saveCache();
+                            return total;
+                        }
+                    } catch (err) {
+                        console.warn('Failed to query water_log table, falling back to cache:', err);
+                    }
+                }
+
+                // Offline fallback: sum from local waterLogs
+                const localLogs = appState.waterLogs.filter(w => w.date === today);
+                const localTotal = localLogs.reduce((sum, item) => sum + Number(item.water_drawn || 0), 0);
+                appState.todayWaterTotal = localTotal;
+                updateDailyWaterBanner();
+                return localTotal;
+            }
+
+            // Sync Queue playback when internet/Supabase is restored
+            async function flushOfflineQueue() {
+                if (!supabaseClient || isOffline) return;
+                const queue = getOfflineQueue();
+                if (queue.length === 0) return;
+
+                let syncedCount = 0;
+                const remaining = [];
+
+                for (const item of queue) {
+                    try {
+                        if (item.type === 'booking') {
+                            await supabaseClient.from('bookings').insert([item.data]);
+                            syncedCount++;
+                        } else if (item.type === 'report') {
+                            await supabaseClient.from('reports').insert([item.data]);
+                            syncedCount++;
+                        } else if (item.type === 'meter_log') {
+                            await supabaseClient.from('water_log').insert([item.waterLog]);
+                            await supabaseClient.from('bookings').update(item.bookingUpdate).eq('id', item.bookingId);
+                            syncedCount++;
+                        } else if (item.type === 'resolve_report') {
+                            await supabaseClient.from('reports').update({ resolved: true }).eq('id', item.reportId);
+                            syncedCount++;
+                        }
+                    } catch (e) {
+                        console.error('Failed to flush item:', item, e);
+                        remaining.push(item);
+                    }
+                }
+
+                if (remaining.length > 0) {
+                    localStorage.setItem(STORAGE_OFFLINE_QUEUE, JSON.stringify(remaining));
+                } else {
+                    clearOfflineQueue();
+                }
+
+                if (syncedCount > 0) {
+                    showToast(`✓ Back online — synced ${syncedCount} queued action(s)`);
+                    await syncAllFromSupabase();
                 }
             }
 
             // -------------------------------------------------------------
             // WATER QUOTA CALCULATION (Fix 3.4: 50,000 L Limit & Booking Pause)
             // -------------------------------------------------------------
-            function getTodayWaterLiters() {
-                const today = getTodayDateString();
-                const logs = appState.meterLogs.filter(m => m.date === today);
-                return logs.reduce((sum, item) => sum + Number(item.liters || 0), 0);
-            }
-
             function updateDailyWaterBanner() {
-                const totalLiters = getTodayWaterLiters();
+                const totalLiters = appState.todayWaterTotal;
                 dailyWaterText.textContent = `${totalLiters.toLocaleString()} L`;
 
                 if (totalLiters >= DAILY_LIMIT_LITERS) {
@@ -1356,20 +1843,27 @@
             }
 
             // -------------------------------------------------------------
-            // PUMP HEALTH HELPERS
+            // PUMP HEALTH HELPERS (Fix 2 & Fix 3.3)
             // -------------------------------------------------------------
             function getActiveBrokenReport(pumpId) {
-                return appState.reports.find(r => r.type === 'broken' && r.pump_id === pumpId && r.status === 'active');
+                const pId = Number(pumpId);
+                return appState.reports.find(r => 
+                    Number(r.pump_id) === pId && 
+                    r.report_type === 'broken' && 
+                    !r.resolved
+                );
             }
 
             function isPumpCurrentlyBusy(pumpId) {
                 const today = getTodayDateString();
                 const now = new Date();
                 const curM = now.getHours() * 60 + now.getMinutes();
+                const pId = Number(pumpId);
 
                 return appState.bookings.some(b => {
-                    if (b.pump_id !== pumpId || b.booking_date !== today) return false;
-                    const { startMin, endMin } = parseSlotMinutes(b.slot);
+                    if (Number(b.pump_id) !== pId || b.date !== today || b.status === 'cancelled') return false;
+                    const slotStr = formatSlotString(b.slot_start, b.slot_end);
+                    const { startMin, endMin } = parseSlotMinutes(slotStr);
                     return curM >= startMin && curM < endMin;
                 });
             }
@@ -1381,13 +1875,14 @@
                 if (!missedSlotBanner) return;
                 // Find any booking marked as missed without a meter log
                 const missed = appState.bookings.slice().reverse().find(b => 
-                    b.status === 'missed' && !appState.meterLogs.some(m => m.booking_id === b.id)
+                    b.status === 'missed' && (!b.water_drawn || Number(b.water_drawn) === 0)
                 );
 
                 if (missed) {
-                    const pump = appState.pumps.find(p => p.id === missed.pump_id);
+                    const pump = appState.pumps.find(p => p.id === Number(missed.pump_id));
                     const pumpNum = pump ? pump.num : missed.pump_id;
-                    missedSlotBanner.textContent = `⚠ You have a missed slot — Pump ${pumpNum} on ${missed.booking_date} ${missed.slot}. Please log your meter reading or it will be flagged.`;
+                    const slotStr = formatSlotString(missed.slot_start, missed.slot_end);
+                    missedSlotBanner.textContent = `⚠ You have a missed slot — Pump ${pumpNum} on ${missed.date} ${slotStr}. Please log your meter reading or it will be flagged.`;
                     missedSlotBanner.classList.add('visible');
                     missedSlotBanner.onclick = () => {
                         openMeterModal(missed);
@@ -1407,14 +1902,15 @@
                 const now = new Date();
                 const curMin = now.getHours() * 60 + now.getMinutes();
 
-                // Check if any pump with active broken report had or has an active/interrupted session today
+                // Check if any pump with an active broken report had or has an active/interrupted session today
                 const brokenPumpWithSession = appState.pumps.find(p => {
                     const brokenReport = getActiveBrokenReport(p.id);
                     if (!brokenReport) return false;
                     return appState.bookings.some(b => {
-                        if (b.pump_id !== p.id || b.booking_date !== today) return false;
+                        if (Number(b.pump_id) !== p.id || b.date !== today) return false;
                         if (b.status === 'interrupted') return true;
-                        const { startMin, endMin } = parseSlotMinutes(b.slot);
+                        const slotStr = formatSlotString(b.slot_start, b.slot_end);
+                        const { startMin, endMin } = parseSlotMinutes(slotStr);
                         return curMin >= startMin && curMin < endMin;
                     });
                 });
@@ -1428,37 +1924,31 @@
             }
 
             // -------------------------------------------------------------
-            // AUTO-COMPLETE EXPIRED SLOTS & MISSED SLOT DETECTION (Fix 3.1 & 3.3)
+            // AUTO-COMPLETE EXPIRED SLOTS & MISSED SLOT DETECTION
             // -------------------------------------------------------------
             function evaluateSlotStatuses() {
                 const today = getTodayDateString();
                 const now = new Date();
                 const curMin = now.getHours() * 60 + now.getMinutes();
-                let hasChanges = false;
 
                 appState.bookings.forEach(b => {
-                    const { startMin, endMin } = parseSlotMinutes(b.slot);
-                    const hasMeterLog = appState.meterLogs.some(m => m.booking_id === b.id);
-                    const isPastDay = b.booking_date < today;
-                    const isToday = b.booking_date === today;
-                    const isFutureDay = b.booking_date > today;
+                    const slotStr = formatSlotString(b.slot_start, b.slot_end);
+                    const { startMin, endMin } = parseSlotMinutes(slotStr);
+                    const hasMeterLog = b.water_drawn && Number(b.water_drawn) > 0;
+                    const isPastDay = b.date < today;
+                    const isToday = b.date === today;
+                    const isFutureDay = b.date > today;
                     const brokenReport = getActiveBrokenReport(b.pump_id);
 
-                    // If water meter was logged, slot is completed
+                    // If meter was logged, slot is completed
                     if (hasMeterLog) {
-                        if (b.status !== 'completed') {
-                            b.status = 'completed';
-                            hasChanges = true;
-                        }
+                        b.status = 'completed';
                         return;
                     }
 
-                    // Pump failure mid-session: If pump is reported broken while booking is currently active (Fix 3.3)
+                    // Pump failure mid-session: Pump reported broken while booking is active (Fix 3.3)
                     if (brokenReport && isToday && curMin >= startMin && curMin < endMin) {
-                        if (b.status !== 'interrupted') {
-                            b.status = 'interrupted';
-                            hasChanges = true;
-                        }
+                        b.status = 'interrupted';
                         return;
                     }
 
@@ -1472,34 +1962,24 @@
                             } else {
                                 b.status = 'upcoming';
                             }
-                            hasChanges = true;
                         }
                         return;
                     }
 
-                    // Missed slot: If a booking's start time has passed and no water meter reading was logged for it (Fix 3.1)
+                    // Missed slot: start time passed and no reading logged (Fix 3.1)
                     if (isPastDay || (isToday && curMin >= startMin)) {
-                        if (b.status !== 'missed') {
-                            b.status = 'missed';
-                            hasChanges = true;
-                        }
+                        b.status = 'missed';
                     } else if (isFutureDay || (isToday && curMin < startMin)) {
-                        if (b.status !== 'upcoming') {
-                            b.status = 'upcoming';
-                            hasChanges = true;
-                        }
+                        b.status = 'upcoming';
                     }
                 });
 
-                if (hasChanges) {
-                    saveState();
-                }
                 updateMissedSlotBanner();
                 updatePumpFailureAlert();
             }
 
             // -------------------------------------------------------------
-            // RENDER RECENT FARMERS
+            // RENDER RECENT FARMERS & PERSIST FARMER NAME
             // -------------------------------------------------------------
             function renderRecentFarmers() {
                 recentFarmersRow.innerHTML = '';
@@ -1509,6 +1989,7 @@
                     pill.textContent = name;
                     pill.addEventListener('click', () => {
                         inputFarmerName.value = name;
+                        localStorage.setItem(STORAGE_FARMER_NAME, name);
                         inputFarmerName.focus();
                     });
                     recentFarmersRow.appendChild(pill);
@@ -1519,10 +2000,11 @@
                 if (!name) return;
                 const trimmed = name.trim();
                 if (!trimmed) return;
+                localStorage.setItem(STORAGE_FARMER_NAME, trimmed);
                 const list = appState.recentFarmers.filter(n => n.toLowerCase() !== trimmed.toLowerCase());
                 list.unshift(trimmed);
                 appState.recentFarmers = list.slice(0, 6);
-                saveState();
+                saveCache();
                 renderRecentFarmers();
             }
 
@@ -1585,10 +2067,9 @@
             // SLOT AVAILABILITY (Fix 1: CLEAN AND UN-ANNOTATED LIST)
             // -------------------------------------------------------------
             function updateSlotAvailability() {
-                // Keep all dropdown options enabled and clean. Never reveal other farmers' names or statuses.
+                // Keep all dropdown options clean and selectable regardless of who booked them
                 Array.from(slotSelect.options).forEach((opt, idx) => {
-                    if (idx === 0) return; // placeholder option
-
+                    if (idx === 0) return;
                     const slotVal = opt.value;
                     const baseText = slotVal + (slotVal.includes('06:00') ? ' (Early Morning)' :
                                                slotVal.includes('08:00') ? ' (Morning)' :
@@ -1603,9 +2084,9 @@
             }
 
             // -------------------------------------------------------------
-            // SUBMIT BOOKING (HARD CONFLICT PREVENTION & QUOTA CHECK)
+            // SUBMIT BOOKING (DATABASE CONFLICT PREVENTION & QUOTA CHECK)
             // -------------------------------------------------------------
-            function handleBookingSubmit() {
+            async function handleBookingSubmit() {
                 bookingInlineError.classList.remove('visible');
                 bookingSuccessCard.classList.remove('visible');
 
@@ -1614,7 +2095,7 @@
                 const chosenDate = bookingDateInput.value;
                 const chosenSlot = slotSelect.value;
 
-                // Basic validation
+                // 1. Basic validation
                 if (!farmerName) {
                     showInlineError('Please enter your farmer name in Step 1.');
                     inputFarmerName.focus();
@@ -1633,7 +2114,7 @@
                     return;
                 }
 
-                // Check Broken Status
+                // 2. Check Broken Pump Status
                 const brokenReport = getActiveBrokenReport(chosenPumpId);
                 if (brokenReport) {
                     const pump = appState.pumps.find(p => p.id === chosenPumpId);
@@ -1643,51 +2124,122 @@
                     return;
                 }
 
-                // Check Daily Water Limit (Fix 3.4)
-                if (getTodayWaterLiters() >= DAILY_LIMIT_LITERS) {
+                // 3. Check Daily Water Limit (Fix 3.4)
+                if (appState.todayWaterTotal >= DAILY_LIMIT_LITERS) {
                     showInlineError('🚨 Daily community water limit of 50,000 L has been reached. Booking paused.');
                     showToast('Daily limit reached — booking paused');
                     return;
                 }
 
-                // HARD CONFLICT / OVERLAP CHECK (Fix 1)
-                // Check if the selected pump + slot + date is already taken or overlaps with an existing booking
-                const { startMin: newStart, endMin: newEnd } = parseSlotMinutes(chosenSlot);
-                const conflict = appState.bookings.find(b => {
-                    if (b.pump_id !== chosenPumpId || b.booking_date !== chosenDate || b.status === 'cancelled') {
-                        return false;
-                    }
-                    const { startMin: existStart, endMin: existEnd } = parseSlotMinutes(b.slot);
-                    return newStart < existEnd && newEnd > existStart;
-                });
+                const { startStr, endStr, startMin: newStart, endMin: newEnd } = parseSlotMinutes(chosenSlot);
+                const slotStartTime = `${startStr}:00`;
+                const slotEndTime = `${endStr}:00`;
 
-                if (conflict) {
+                btnSubmitBooking.disabled = true;
+                btnSubmitBooking.textContent = 'Verifying Slot Availability...';
+
+                // 4. SERVER-SIDE CONFLICT CHECK VIA SUPABASE (Overlap: slot_start < newSlotEnd AND slot_end > newSlotStart)
+                let conflictFound = false;
+                let conflictingBooking = null;
+
+                if (supabaseClient && !isOffline) {
+                    try {
+                        const { data: dbConflicts, error } = await supabaseClient
+                            .from('bookings')
+                            .select('*')
+                            .eq('pump_id', chosenPumpId)
+                            .eq('date', chosenDate)
+                            .neq('status', 'cancelled')
+                            .lt('slot_start', slotEndTime)
+                            .gt('slot_end', slotStartTime);
+
+                        if (error) {
+                            console.warn('Supabase conflict query error, checking local:', error);
+                        } else if (dbConflicts && dbConflicts.length > 0) {
+                            conflictFound = true;
+                            conflictingBooking = dbConflicts[0];
+                        }
+                    } catch (e) {
+                        console.warn('Network error during conflict check:', e);
+                    }
+                }
+
+                // Fallback to local memory / queue check
+                if (!conflictFound) {
+                    conflictingBooking = appState.bookings.find(b => {
+                        if (Number(b.pump_id) !== chosenPumpId || b.date !== chosenDate || b.status === 'cancelled') {
+                            return false;
+                        }
+                        const bSlot = formatSlotString(b.slot_start, b.slot_end);
+                        const { startMin: existStart, endMin: existEnd } = parseSlotMinutes(bSlot);
+                        return newStart < existEnd && newEnd > existStart;
+                    });
+                    if (conflictingBooking) conflictFound = true;
+                }
+
+                // 5. IF CONFLICT FOUND: Show exact popup & inline error
+                if (conflictFound && conflictingBooking) {
+                    btnSubmitBooking.disabled = false;
+                    btnSubmitBooking.textContent = 'Confirm Reservation';
+
                     const pump = appState.pumps.find(p => p.id === chosenPumpId);
                     const pumpNum = pump ? pump.num : chosenPumpId;
-                    const [timeStart, timeEnd] = conflict.slot.split(' - ').map(s => s.trim());
+                    const conflictSlot = formatSlotString(conflictingBooking.slot_start, conflictingBooking.slot_end);
+                    const [timeStart, timeEnd] = conflictSlot.split(' - ').map(s => s.trim());
+
                     const conflictMsg = `⛔ This slot is unavailable. Pump ${pumpNum} is already reserved from ${timeStart} to ${timeEnd} by another farmer. Please choose a different time.`;
                     showToast(conflictMsg);
                     showInlineError(conflictMsg);
                     return;
                 }
 
-                // Create Booking
-                const newBooking = {
-                    id: 'bk_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                // 6. CREATE & PERSIST BOOKING
+                const newBookingPayload = {
                     pump_id: chosenPumpId,
                     farmer_name: farmerName,
-                    booking_date: chosenDate,
-                    slot: chosenSlot,
-                    status: 'upcoming',
-                    created_at: new Date().toISOString()
+                    date: chosenDate,
+                    slot_start: slotStartTime,
+                    slot_end: slotEndTime,
+                    status: 'upcoming'
                 };
 
-                appState.bookings.push(newBooking);
+                let savedBooking = null;
+
+                if (supabaseClient && !isOffline) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('bookings')
+                            .insert([newBookingPayload])
+                            .select()
+                            .single();
+
+                        if (error) throw error;
+                        savedBooking = data;
+                    } catch (err) {
+                        console.warn('Supabase insert failed, saving offline:', err);
+                        newBookingPayload.id = 'bk_offline_' + Date.now();
+                        savedBooking = newBookingPayload;
+                        pushOfflineQueue({ type: 'booking', data: newBookingPayload });
+                    }
+                } else {
+                    newBookingPayload.id = 'bk_offline_' + Date.now();
+                    savedBooking = newBookingPayload;
+                    pushOfflineQueue({ type: 'booking', data: newBookingPayload });
+                }
+
+                // Update local state
+                const existingIdx = appState.bookings.findIndex(b => b.id === savedBooking.id);
+                if (existingIdx >= 0) {
+                    appState.bookings[existingIdx] = savedBooking;
+                } else {
+                    appState.bookings.push(savedBooking);
+                }
+
                 recordRecentFarmer(farmerName);
-                saveState();
+                saveCache();
                 evaluateSlotStatuses();
 
-                // Show Success Confirmation Card
+                // 7. SHOW SUCCESS CARD
                 const pump = appState.pumps.find(p => p.id === chosenPumpId);
                 bookingSuccessDetails.innerHTML = `
                     <strong>${pump ? pump.name : 'Pump'} · Pump ${pump ? pump.num : ''}</strong><br>
@@ -1696,8 +2248,11 @@
                 `;
                 bookingSuccessCard.classList.add('visible');
 
-                // Reset selection
+                // Reset selection & state
                 slotSelect.value = '';
+                btnSubmitBooking.disabled = false;
+                btnSubmitBooking.textContent = 'Confirm Reservation';
+
                 updateSlotAvailability();
                 renderPumpSelection();
                 renderSchedule();
@@ -1719,7 +2274,6 @@
                 updateMissedSlotBanner();
 
                 const today = getTodayDateString();
-
                 timelineRowsContainer.innerHTML = '';
 
                 // Render each pump row (Fix 2: Red line/indicator ONLY on actively reported broken pumps)
@@ -1728,7 +2282,6 @@
                     rowDiv.className = 'timeline-row';
 
                     const brokenReport = getActiveBrokenReport(pump.id);
-
                     const rowTitle = document.createElement('div');
                     rowTitle.className = 'timeline-row-title';
 
@@ -1748,11 +2301,11 @@
                         block.className = 'timeline-slot-block';
 
                         // Check if booking exists for this slot on today's date
-                        const booking = appState.bookings.find(b => 
-                            b.pump_id === pump.id && 
-                            b.booking_date === today && 
-                            b.slot === slot
-                        );
+                        const booking = appState.bookings.find(b => {
+                            if (Number(b.pump_id) !== pump.id || b.date !== today || b.status === 'cancelled') return false;
+                            const slotStr = formatSlotString(b.slot_start, b.slot_end);
+                            return slotStr === slot;
+                        });
 
                         if (brokenReport) {
                             block.classList.add('broken');
@@ -1774,17 +2327,14 @@
                     timelineRowsContainer.appendChild(rowDiv);
                 });
 
-                // Clean rows have zero red lines (Fix 2: global vertical red line eliminated)
-
-                // Render Reservations List for Today
                 renderReservationsList(today);
             }
 
             function renderReservationsList(today) {
                 reservationsListContainer.innerHTML = '';
                 const todayBookings = appState.bookings
-                    .filter(b => b.booking_date === today)
-                    .sort((a, b) => a.slot.localeCompare(b.slot));
+                    .filter(b => b.date === today && b.status !== 'cancelled')
+                    .sort((a, b) => (a.slot_start || '').localeCompare(b.slot_start || ''));
 
                 if (todayBookings.length === 0) {
                     reservationsListContainer.innerHTML = `
@@ -1796,8 +2346,8 @@
                 }
 
                 todayBookings.forEach(booking => {
-                    const pump = appState.pumps.find(p => p.id === booking.pump_id);
-                    const meterLog = appState.meterLogs.find(m => m.booking_id === booking.id);
+                    const pump = appState.pumps.find(p => p.id === Number(booking.pump_id));
+                    const slotStr = formatSlotString(booking.slot_start, booking.slot_end);
 
                     const item = document.createElement('div');
                     item.className = 'reservation-item';
@@ -1816,11 +2366,12 @@
                     }
 
                     let meterActionHtml = '';
-                    if (meterLog) {
-                        if (meterLog.flagged || meterLog.liters > 8000) {
-                            meterActionHtml = `<span class="pill-logged" style="background:var(--accent-light); border:1px solid var(--accent); color:#B45309; font-weight:700;" title="Above 8,000 L single session limit">⚠ ${meterLog.liters.toLocaleString()} L Logged</span>`;
+                    if (booking.water_drawn && Number(booking.water_drawn) > 0) {
+                        const liters = Number(booking.water_drawn);
+                        if (liters > 8000) {
+                            meterActionHtml = `<span class="pill-logged" style="background:var(--accent-light); border:1px solid var(--accent); color:#B45309; font-weight:700;" title="Above 8,000 L single session limit">⚠ ${liters.toLocaleString()} L Logged</span>`;
                         } else {
-                            meterActionHtml = `<span class="pill-logged">✓ ${meterLog.liters.toLocaleString()} L Logged</span>`;
+                            meterActionHtml = `<span class="pill-logged">✓ ${liters.toLocaleString()} L Logged</span>`;
                         }
                     } else {
                         meterActionHtml = `<button type="button" class="btn-log-meter" data-id="${booking.id}">Log Meter Reading</button>`;
@@ -1829,7 +2380,7 @@
                     item.innerHTML = `
                         <div>
                             <div class="res-info-main">${pump ? pump.name : 'Pump'} · ${booking.farmer_name}</div>
-                            <div class="res-info-sub">${booking.slot} · ${statusPill}</div>
+                            <div class="res-info-sub">${slotStr} · ${statusPill}</div>
                         </div>
                         <div>
                             ${meterActionHtml}
@@ -1850,15 +2401,15 @@
             // -------------------------------------------------------------
             function openMeterModal(booking) {
                 activeMeterBooking = booking;
-                const pump = appState.pumps.find(p => p.id === booking.pump_id);
+                const pump = appState.pumps.find(p => p.id === Number(booking.pump_id));
+                const slotStr = formatSlotString(booking.slot_start, booking.slot_end);
 
-                meterModalBookingInfo.textContent = `${pump ? pump.name : 'Pump'} (${pump ? pump.num : ''}) · ${booking.slot} · ${booking.farmer_name}`;
-                meterStartInput.value = '';
-                meterEndInput.value = '';
+                meterModalBookingInfo.textContent = `${pump ? pump.name : 'Pump'} (${pump ? pump.num : ''}) · ${slotStr} · ${booking.farmer_name}`;
+                meterStartInput.value = booking.meter_start || '';
+                meterEndInput.value = booking.meter_end || '';
                 meterCalculatedLiters.textContent = '0 L';
                 meterErrorMsg.classList.remove('visible');
 
-                // Reset excessive warning box
                 excessiveWaterWarning.classList.remove('visible');
                 meterActionsNormal.style.display = 'flex';
 
@@ -1915,34 +2466,67 @@
                 saveMeterLog(liters, false);
             }
 
-            function saveMeterLog(liters, isFlagged) {
+            async function saveMeterLog(liters, isFlagged) {
                 if (!activeMeterBooking) return;
                 const start = parseFloat(meterStartInput.value);
                 const end = parseFloat(meterEndInput.value);
 
-                const newLog = {
-                    id: 'ml_' + Date.now(),
-                    booking_id: activeMeterBooking.id,
-                    pump_id: activeMeterBooking.pump_id,
-                    farmer_name: activeMeterBooking.farmer_name,
-                    date: activeMeterBooking.booking_date,
-                    start_reading: start,
-                    end_reading: end,
-                    liters: liters,
-                    flagged: isFlagged,
-                    timestamp: new Date().toISOString()
+                const bookingId = activeMeterBooking.id;
+                const pumpId = Number(activeMeterBooking.pump_id);
+                const farmerName = activeMeterBooking.farmer_name;
+                const date = activeMeterBooking.date;
+
+                const waterLogPayload = {
+                    booking_id: bookingId,
+                    farmer_name: farmerName,
+                    pump_id: pumpId,
+                    date: date,
+                    water_drawn: liters,
+                    flagged: isFlagged
                 };
 
-                appState.meterLogs.push(newLog);
+                const bookingUpdate = {
+                    meter_start: start,
+                    meter_end: end,
+                    water_drawn: liters,
+                    status: 'completed'
+                };
 
-                // Slot is now completed
+                // Update in-memory booking immediately
+                activeMeterBooking.meter_start = start;
+                activeMeterBooking.meter_end = end;
+                activeMeterBooking.water_drawn = liters;
                 activeMeterBooking.status = 'completed';
 
-                saveState();
+                // Send to Supabase or Offline Queue
+                if (supabaseClient && !isOffline) {
+                    try {
+                        await supabaseClient.from('water_log').insert([waterLogPayload]);
+                        await supabaseClient.from('bookings').update(bookingUpdate).eq('id', bookingId);
+                    } catch (e) {
+                        console.warn('Database meter log write error, queuing offline:', e);
+                        pushOfflineQueue({
+                            type: 'meter_log',
+                            waterLog: waterLogPayload,
+                            bookingUpdate: bookingUpdate,
+                            bookingId: bookingId
+                        });
+                    }
+                } else {
+                    pushOfflineQueue({
+                        type: 'meter_log',
+                        waterLog: waterLogPayload,
+                        bookingUpdate: bookingUpdate,
+                        bookingId: bookingId
+                    });
+                }
+
+                appState.waterLogs.push(waterLogPayload);
                 closeMeterModal();
+                await fetchTodayWaterTotal();
+                saveCache();
                 evaluateSlotStatuses();
                 renderSchedule();
-                updateDailyWaterBanner();
                 updateMissedSlotBanner();
 
                 if (isFlagged) {
@@ -1974,7 +2558,7 @@
 
             function renderActiveReports() {
                 activeReportsContainer.innerHTML = '';
-                const activeReports = appState.reports.filter(r => r.status === 'active');
+                const activeReports = appState.reports.filter(r => !r.resolved);
 
                 if (activeReports.length === 0) {
                     activeReportsContainer.innerHTML = `
@@ -1986,11 +2570,11 @@
                 }
 
                 activeReports.forEach(report => {
-                    const pump = appState.pumps.find(p => p.id === report.pump_id);
+                    const pump = appState.pumps.find(p => p.id === Number(report.pump_id));
                     const item = document.createElement('div');
                     item.className = 'alert-item';
 
-                    const isBroken = report.type === 'broken';
+                    const isBroken = report.report_type === 'broken';
                     const badgeText = isBroken ? '⚠ BROKEN PUMP' : '⏱ TIME OVERRUN';
                     const badgeBg = isBroken ? 'var(--danger-light)' : 'var(--accent-light)';
                     const badgeColor = isBroken ? 'var(--danger)' : '#C06B1C';
@@ -1998,13 +2582,13 @@
                     item.innerHTML = `
                         <div class="alert-header">
                             <span style="font-size: 11px; font-weight: 700; background:${badgeBg}; color:${badgeColor}; padding: 3px 8px; border-radius: 4px;">${badgeText}</span>
-                            <span style="font-size: 11px; color: var(--text-muted);">${new Date(report.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">${new Date(report.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <div style="font-size: 14px; font-weight: 700; margin-bottom: 2px;">
                             ${pump ? pump.name : 'Pump'} · Pump ${pump ? pump.num : ''}
                         </div>
                         <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
-                            ${report.notes} (Reported by: <strong>${report.reporter_name}</strong>)
+                            ${report.details || 'No notes'} (Reported by: <strong>${report.reporter_name}</strong>)
                         </div>
                         <button type="button" class="btn-secondary" style="font-size: 12px; padding: 6px 10px; width: 100%;" data-id="${report.id}">
                             ${isBroken ? '✓ Mark Repaired / Restore Pump' : '✓ Mark Resolved'}
@@ -2013,10 +2597,20 @@
 
                     const btnResolve = item.querySelector('button');
                     if (btnResolve) {
-                        btnResolve.addEventListener('click', () => {
-                            report.status = 'resolved';
-                            report.resolved_at = new Date().toISOString();
-                            saveState();
+                        btnResolve.addEventListener('click', async () => {
+                            report.resolved = true;
+
+                            if (supabaseClient && !isOffline) {
+                                try {
+                                    await supabaseClient.from('reports').update({ resolved: true }).eq('id', report.id);
+                                } catch (e) {
+                                    pushOfflineQueue({ type: 'resolve_report', reportId: report.id });
+                                }
+                            } else {
+                                pushOfflineQueue({ type: 'resolve_report', reportId: report.id });
+                            }
+
+                            saveCache();
                             renderActiveReports();
                             renderPumpSelection();
                             evaluateSlotStatuses();
@@ -2030,9 +2624,9 @@
                 });
             }
 
-            function handleBrokenReportSubmit() {
+            async function handleBrokenReportSubmit() {
                 brokenFormError.classList.remove('visible');
-                const pumpId = brokenPumpSelect.value;
+                const pumpId = Number(brokenPumpSelect.value);
                 const reporter = brokenReporterName.value.trim();
                 const notes = brokenNotes.value.trim();
 
@@ -2042,27 +2636,47 @@
                     return;
                 }
 
-                const newReport = {
-                    id: 'rep_' + Date.now(),
-                    type: 'broken',
+                const reportPayload = {
                     pump_id: pumpId,
                     reporter_name: reporter,
-                    notes: notes,
-                    timestamp: new Date().toISOString(),
-                    status: 'active'
+                    report_type: 'broken',
+                    details: notes,
+                    resolved: false
                 };
 
-                appState.reports.unshift(newReport);
+                let savedReport = null;
+                if (supabaseClient && !isOffline) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('reports')
+                            .insert([reportPayload])
+                            .select()
+                            .single();
+                        if (error) throw error;
+                        savedReport = data;
+                    } catch (e) {
+                        reportPayload.id = 'rep_offline_' + Date.now();
+                        savedReport = reportPayload;
+                        pushOfflineQueue({ type: 'report', data: reportPayload });
+                    }
+                } else {
+                    reportPayload.id = 'rep_offline_' + Date.now();
+                    savedReport = reportPayload;
+                    pushOfflineQueue({ type: 'report', data: reportPayload });
+                }
 
-                // Fix 3.3: Pump failure mid-session check
+                appState.reports.unshift(savedReport);
+
+                // Fix 3.3: Mid-session failure check
                 const today = getTodayDateString();
                 const now = new Date();
                 const curMin = now.getHours() * 60 + now.getMinutes();
 
                 let interruptedBooking = null;
                 appState.bookings.forEach(b => {
-                    if (b.pump_id === pumpId && b.booking_date === today) {
-                        const { startMin, endMin } = parseSlotMinutes(b.slot);
+                    if (Number(b.pump_id) === pumpId && b.date === today && b.status !== 'cancelled') {
+                        const slotStr = formatSlotString(b.slot_start, b.slot_end);
+                        const { startMin, endMin } = parseSlotMinutes(slotStr);
                         if (curMin >= startMin && curMin < endMin) {
                             b.status = 'interrupted';
                             interruptedBooking = b;
@@ -2070,8 +2684,7 @@
                     }
                 });
 
-                saveState();
-
+                saveCache();
                 brokenNotes.value = '';
                 formReportBroken.classList.remove('visible');
                 cardToggleBroken.classList.remove('active');
@@ -2090,9 +2703,9 @@
                 }
             }
 
-            function handleOverrunReportSubmit() {
+            async function handleOverrunReportSubmit() {
                 overrunFormError.classList.remove('visible');
-                const pumpId = overrunPumpSelect.value;
+                const pumpId = Number(overrunPumpSelect.value);
                 const reporter = overrunReporterName.value.trim();
                 const notes = overrunNotes.value.trim();
 
@@ -2102,18 +2715,37 @@
                     return;
                 }
 
-                const newReport = {
-                    id: 'rep_' + Date.now(),
-                    type: 'overrun',
+                const reportPayload = {
                     pump_id: pumpId,
                     reporter_name: reporter,
-                    notes: notes,
-                    timestamp: new Date().toISOString(),
-                    status: 'active'
+                    report_type: 'overrun',
+                    details: notes,
+                    resolved: false
                 };
 
-                appState.reports.unshift(newReport);
-                saveState();
+                let savedReport = null;
+                if (supabaseClient && !isOffline) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('reports')
+                            .insert([reportPayload])
+                            .select()
+                            .single();
+                        if (error) throw error;
+                        savedReport = data;
+                    } catch (e) {
+                        reportPayload.id = 'rep_offline_' + Date.now();
+                        savedReport = reportPayload;
+                        pushOfflineQueue({ type: 'report', data: reportPayload });
+                    }
+                } else {
+                    reportPayload.id = 'rep_offline_' + Date.now();
+                    savedReport = reportPayload;
+                    pushOfflineQueue({ type: 'report', data: reportPayload });
+                }
+
+                appState.reports.unshift(savedReport);
+                saveCache();
 
                 overrunNotes.value = '';
                 formReportOverrun.classList.remove('visible');
@@ -2134,6 +2766,8 @@
                 navButtons.forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === targetTabId);
                 });
+
+                localStorage.setItem(STORAGE_ACTIVE_TAB, targetTabId);
 
                 if (targetTabId === 'tabSchedule') {
                     renderSchedule();
@@ -2158,21 +2792,77 @@
                 toastNotification.classList.add('visible');
                 toastTimeout = setTimeout(() => {
                     toastNotification.classList.remove('visible');
-                }, 3600);
+                }, 3800);
             }
 
             // -------------------------------------------------------------
-            // INITIALIZATION
+            // SETUP MODAL ACTIONS
             // -------------------------------------------------------------
-            function init() {
-                loadState();
+            function openSetupModal() {
+                setupSupabaseUrl.value = localStorage.getItem(STORAGE_CONFIG_URL) || '';
+                setupSupabaseKey.value = localStorage.getItem(STORAGE_CONFIG_KEY) || '';
+                setupErrorMsg.classList.remove('visible');
+                modalSupabaseSetup.classList.add('visible');
+            }
 
-                // Setup date picker default & min
+            function closeSetupModal() {
+                modalSupabaseSetup.classList.remove('visible');
+            }
+
+            async function handleConnectClick() {
+                setupErrorMsg.classList.remove('visible');
+                const url = setupSupabaseUrl.value.trim();
+                const key = setupSupabaseKey.value.trim();
+
+                if (!url || !key) {
+                    setupErrorMsg.textContent = 'Please enter both the Project URL and Anon Public Key.';
+                    setupErrorMsg.classList.add('visible');
+                    return;
+                }
+
+                if (!url.startsWith('https://')) {
+                    setupErrorMsg.textContent = 'Project URL must start with https:// (e.g. https://xyz.supabase.co)';
+                    setupErrorMsg.classList.add('visible');
+                    return;
+                }
+
+                btnConnectSupabase.disabled = true;
+                btnConnectSupabase.textContent = 'Testing connection...';
+
+                try {
+                    await testAndInitSupabase(url, key, true);
+                    closeSetupModal();
+                    showToast('✓ Connected to Supabase! Real-time sync enabled.');
+                } catch (err) {
+                    setupErrorMsg.textContent = 'Connection failed: ' + (err.message || 'Please verify URL and key.');
+                    setupErrorMsg.classList.add('visible');
+                } finally {
+                    btnConnectSupabase.disabled = false;
+                    btnConnectSupabase.textContent = 'Connect';
+                }
+            }
+
+            // -------------------------------------------------------------
+            // APPLICATION INITIALIZATION
+            // -------------------------------------------------------------
+            async function init() {
+                loadCache();
+
+                // Prefill saved farmer name from localStorage
+                const savedFarmer = localStorage.getItem(STORAGE_FARMER_NAME);
+                if (savedFarmer) {
+                    inputFarmerName.value = savedFarmer;
+                }
+                inputFarmerName.addEventListener('input', () => {
+                    localStorage.setItem(STORAGE_FARMER_NAME, inputFarmerName.value.trim());
+                });
+
+                // Default booking date to today
                 const today = getTodayDateString();
                 bookingDateInput.value = today;
                 bookingDateInput.min = today;
 
-                // Render initial elements
+                // Render initial interface
                 renderRecentFarmers();
                 renderPumpSelection();
                 populateReportSelects();
@@ -2183,6 +2873,30 @@
                 updateDailyWaterBanner();
                 updateMissedSlotBanner();
                 updatePumpFailureAlert();
+
+                // Restore active tab
+                const savedTab = localStorage.getItem(STORAGE_ACTIVE_TAB);
+                if (savedTab && document.getElementById(savedTab)) {
+                    switchTab(savedTab);
+                }
+
+                // Supabase Connection Check
+                const storedUrl = localStorage.getItem(STORAGE_CONFIG_URL);
+                const storedKey = localStorage.getItem(STORAGE_CONFIG_KEY);
+
+                if (storedUrl && storedKey) {
+                    headerStatusLabel.textContent = 'CONNECTING...';
+                    try {
+                        await testAndInitSupabase(storedUrl, storedKey);
+                    } catch (e) {
+                        console.warn('Initial Supabase connection failed, entering offline mode:', e);
+                        setOfflineMode(true, 'Database unreachable — operating offline');
+                    }
+                } else {
+                    // First-time user setup modal
+                    setOfflineMode(true, 'Setup Supabase for real-time shared bookings');
+                    openSetupModal();
+                }
 
                 // Tab switching listeners
                 navButtons.forEach(btn => {
@@ -2236,13 +2950,39 @@
                     saveMeterLog(liters, true);
                 });
 
-                // 60-Second Background Interval for Auto-completing & Schedule Refresh
-                setInterval(() => {
+                // Setup Modal Listeners
+                btnConnectSupabase.addEventListener('click', handleConnectClick);
+                btnSkipSetup.addEventListener('click', () => {
+                    closeSetupModal();
+                    setOfflineMode(true, 'Offline mode (Demo)');
+                    showToast('Operating in Offline / Local mode');
+                });
+                btnResetConnection.addEventListener('click', openSetupModal);
+
+                // Online / Offline Window Events
+                window.addEventListener('online', async () => {
+                    if (supabaseClient) {
+                        setOfflineMode(false);
+                        await flushOfflineQueue();
+                        await syncAllFromSupabase();
+                    }
+                });
+                window.addEventListener('offline', () => {
+                    setOfflineMode(true);
+                });
+
+                // 45-Second Interval for Auto-completing, Refreshing & Online Queue Flush
+                setInterval(async () => {
                     evaluateSlotStatuses();
                     renderSchedule();
                     updateMissedSlotBanner();
                     updatePumpFailureAlert();
-                }, 60000);
+
+                    if (supabaseClient && navigator.onLine) {
+                        await flushOfflineQueue();
+                        await fetchTodayWaterTotal();
+                    }
+                }, 45000);
             }
 
             // Launch on DOM ready
