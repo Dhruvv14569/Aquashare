@@ -63,7 +63,7 @@
         }
 
         /* -------------------------------------------------------------
-           DAILY WATER BANNER
+           DAILY WATER & STATUS BANNERS (STICKY TOP)
            ------------------------------------------------------------- */
         .water-banner-wrapper {
             position: sticky;
@@ -85,6 +85,23 @@
             box-shadow: 0 2px 6px rgba(230, 57, 70, 0.3);
         }
         .water-danger-banner.visible {
+            display: block;
+        }
+
+        /* Pump Failure Mid-Session Sticky Alert (Fix 3.3) */
+        .pump-failure-alert {
+            display: none;
+            background-color: var(--danger);
+            color: #FFFFFF;
+            padding: 10px 14px;
+            font-size: 12.5px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.4;
+            letter-spacing: 0.01em;
+            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.35);
+        }
+        .pump-failure-alert.visible {
             display: block;
         }
 
@@ -116,56 +133,61 @@
         }
 
         /* -------------------------------------------------------------
-           APP BRAND HEADER
+           APP BRAND HEADER (Centered Lockup, Inline SVG, Fix 4)
            ------------------------------------------------------------- */
         .app-header {
             background-color: #FFFFFF;
             border-bottom: 1px solid var(--border-color);
-            padding: 14px 18px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            position: relative;
         }
         .brand-block {
             display: flex;
             align-items: center;
             gap: 10px;
+            text-align: left;
         }
-        .brand-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            background-color: var(--primary);
-            color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
+        .brand-svg-mark {
+            width: 32px;
+            height: 32px;
             flex-shrink: 0;
+            display: block;
+        }
+        .brand-text {
+            display: flex;
+            flex-direction: column;
         }
         .brand-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 700;
-            color: var(--primary);
-            line-height: 1.2;
+            color: #1A1A1A;
+            line-height: 1.15;
+            margin: 0;
+            letter-spacing: -0.01em;
         }
         .brand-sub {
             font-size: 11px;
             font-weight: 600;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            color: #2D6A4F;
+            font-variant: small-caps;
+            letter-spacing: 0.06em;
+            line-height: 1.2;
         }
         .header-status-badge {
-            font-size: 11px;
+            position: absolute;
+            right: 14px;
+            font-size: 10px;
             font-weight: 700;
             color: var(--primary);
             background-color: var(--primary-light);
-            padding: 4px 8px;
+            padding: 3px 7px;
             border-radius: 6px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
         .pulse-dot {
             width: 7px;
@@ -511,6 +533,14 @@
         }
         .timeline-row {
             position: relative;
+            transition: all 0.2s ease;
+        }
+        .timeline-row.broken {
+            position: relative;
+            border-left: 3.5px solid var(--danger);
+            padding-left: 6px;
+            background-color: rgba(230, 57, 70, 0.03);
+            border-radius: 2px 6px 6px 2px;
         }
         .timeline-row-title {
             font-size: 12px;
@@ -559,31 +589,16 @@
             border-color: #C92A37;
             color: #FFFFFF;
         }
+        .timeline-slot-block.interrupted {
+            background-color: var(--danger);
+            border-color: #C92A37;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
         .timeline-slot-block.missed {
             background-color: var(--accent-light);
             border: 1.5px solid var(--accent);
             color: #C06B1C;
-        }
-
-        /* Current Time Indicator Line */
-        .timeline-now-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: var(--danger);
-            z-index: 10;
-            pointer-events: none;
-        }
-        .timeline-now-line::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: 10px;
-            height: 10px;
-            background-color: var(--danger);
-            border-radius: 50%;
         }
 
         /* Reservations List */
@@ -735,6 +750,54 @@
         }
 
         /* -------------------------------------------------------------
+           MISSED SLOT BANNER & EXCESSIVE LOG WARNING
+           ------------------------------------------------------------- */
+        .missed-slot-banner {
+            display: none;
+            background-color: var(--accent-light);
+            border: 1.5px solid var(--accent);
+            border-radius: 8px;
+            padding: 11px 14px;
+            margin-bottom: 14px;
+            color: #9C510E;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+        .missed-slot-banner:active {
+            transform: scale(0.99);
+            background-color: #FDE8D3;
+        }
+        .missed-slot-banner.visible {
+            display: block;
+        }
+
+        .excessive-warning-box {
+            display: none;
+            background-color: #FFF4E5;
+            border: 1.5px solid var(--accent);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+        .excessive-warning-box.visible {
+            display: block;
+        }
+        .excessive-warning-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #B45309;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .excessive-warning-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* -------------------------------------------------------------
            MODAL DIALOGS (METER LOGGING ONLY)
            ------------------------------------------------------------- */
         .modal-overlay {
@@ -770,7 +833,7 @@
             transform: translateX(-50%);
             background-color: #1A1A1A;
             color: #FFFFFF;
-            padding: 10px 18px;
+            padding: 11px 18px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
@@ -778,7 +841,11 @@
             pointer-events: none;
             transition: opacity 0.2s ease;
             z-index: 90;
-            white-space: nowrap;
+            max-width: 90%;
+            width: max-content;
+            text-align: center;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .toast.visible {
             opacity: 1;
@@ -790,12 +857,17 @@
     <div class="app-shell">
 
         <!-- =========================================================
-             DAILY WATER BANNER
+             STICKY NOTIFICATION BANNERS
              ========================================================= -->
         <div class="water-banner-wrapper">
-            <!-- Limit Reached: Full-width sticky red banner -->
+            <!-- Pump Failure Mid-Session Alert (Fix 3.3) -->
+            <div id="pumpFailureStickyAlert" class="pump-failure-alert">
+                <!-- Dynamic Mid-Session Pump Alert -->
+            </div>
+
+            <!-- Limit Reached: Full-width sticky red banner (Fix 3.4) -->
             <div id="waterDangerBanner" class="water-danger-banner">
-                🚨 Daily water limit reached — no new extractions today
+                🚨 Daily water limit reached (50,000 L) — booking paused
             </div>
 
             <!-- Normal: Small green pill at top -->
@@ -808,14 +880,18 @@
         </div>
 
         <!-- =========================================================
-             BRAND HEADER
+             BRAND HEADER (Fix 4: Centered Lockup, 32x32 Inline SVG)
              ========================================================= -->
         <header class="app-header">
             <div class="brand-block">
-                <div class="brand-icon">💧</div>
-                <div>
+                <svg class="brand-svg-mark" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AquaShare Logo">
+                    <path d="M16 3C16 3 7.5 13.5 7.5 20.2C7.5 24.8 11.3 28.5 16 28.5C20.7 28.5 24.5 24.8 24.5 20.2C24.5 13.5 16 3 16 3Z" fill="#2D6A4F"/>
+                    <line x1="7" y1="18.5" x2="25" y2="18.5" stroke="#F4A261" stroke-width="2.2" stroke-linecap="round"/>
+                    <path d="M11.5 23C13.5 24.2 18.5 24.2 20.5 23" stroke="#F4A261" stroke-width="1.6" stroke-linecap="round" stroke-opacity="0.9"/>
+                </svg>
+                <div class="brand-text">
                     <h1 class="brand-title">AquaShare</h1>
-                    <div class="brand-sub">Community Groundwater</div>
+                    <div class="brand-sub">Community Water · Est. 2026</div>
                 </div>
             </div>
             <div class="header-status-badge">
@@ -833,6 +909,9 @@
                  TAB 1: BOOKING FORM FLOW
                  ===================================================== -->
             <section id="tabBook" class="tab-panel active">
+                
+                <!-- MISSED SLOT ALERT BANNER (Fix 3.1) -->
+                <div id="missedSlotBanner" class="missed-slot-banner"></div>
                 
                 <!-- STEP 1: FARMER NAME -->
                 <div class="card">
@@ -909,7 +988,7 @@
                         <div class="legend-item"><div class="legend-box" style="background: var(--primary);"></div> Upcoming</div>
                         <div class="legend-item"><div class="legend-box" style="background: var(--accent);"></div> Active Now</div>
                         <div class="legend-item"><div class="legend-box" style="background: var(--status-grey);"></div> Completed</div>
-                        <div class="legend-item"><div class="legend-box" style="background: var(--danger);"></div> Broken</div>
+                        <div class="legend-item"><div class="legend-box" style="background: var(--danger);"></div> Broken / Interrupted</div>
                         <div class="legend-item"><div class="legend-box" style="background: var(--accent-light); border: 1.5px solid var(--accent);"></div> Missed</div>
                     </div>
 
@@ -1056,7 +1135,16 @@
                     End reading must be greater than start reading.
                 </div>
 
-                <div style="display: flex; gap: 10px;">
+                <!-- EXCESSIVE WATER WARNING DIALOG (Fix 3.2: > 8,000 L Cap) -->
+                <div id="excessiveWaterWarning" class="excessive-warning-box">
+                    <div id="excessiveWarningText" class="excessive-warning-text"></div>
+                    <div class="excessive-warning-actions">
+                        <button type="button" class="btn-secondary" id="btnCancelExcessive" style="flex: 1; padding: 8px 12px; font-size: 13px;">Cancel</button>
+                        <button type="button" class="btn-primary" id="btnConfirmExcessive" style="flex: 1; padding: 8px 12px; font-size: 13px; background-color: var(--accent);">Confirm</button>
+                    </div>
+                </div>
+
+                <div id="meterActionsNormal" style="display: flex; gap: 10px;">
                     <button type="button" class="btn-secondary" id="btnCancelMeterLog" style="flex: 1;">Cancel</button>
                     <button type="button" class="btn-primary" id="btnSubmitMeterLog" style="flex: 1;">Save Log</button>
                 </div>
@@ -1107,12 +1195,14 @@
 
             // DOM Elements
             const waterDangerBanner = document.getElementById('waterDangerBanner');
+            const pumpFailureStickyAlert = document.getElementById('pumpFailureStickyAlert');
             const waterSafeBar = document.getElementById('waterSafeBar');
             const dailyWaterText = document.getElementById('dailyWaterText');
 
             const tabPanels = document.querySelectorAll('.tab-panel');
             const navButtons = document.querySelectorAll('.nav-button');
 
+            const missedSlotBanner = document.getElementById('missedSlotBanner');
             const inputFarmerName = document.getElementById('inputFarmerName');
             const recentFarmersRow = document.getElementById('recentFarmersRow');
             const pumpSelectionList = document.getElementById('pumpSelectionList');
@@ -1151,6 +1241,11 @@
             const meterEndInput = document.getElementById('meterEndInput');
             const meterCalculatedLiters = document.getElementById('meterCalculatedLiters');
             const meterErrorMsg = document.getElementById('meterErrorMsg');
+            const excessiveWaterWarning = document.getElementById('excessiveWaterWarning');
+            const excessiveWarningText = document.getElementById('excessiveWarningText');
+            const btnCancelExcessive = document.getElementById('btnCancelExcessive');
+            const btnConfirmExcessive = document.getElementById('btnConfirmExcessive');
+            const meterActionsNormal = document.getElementById('meterActionsNormal');
             const btnCancelMeterLog = document.getElementById('btnCancelMeterLog');
             const btnSubmitMeterLog = document.getElementById('btnSubmitMeterLog');
 
@@ -1219,6 +1314,7 @@
                         start_reading: 4520,
                         end_reading: 5760,
                         liters: 12400,
+                        flagged: true,
                         timestamp: new Date().toISOString()
                     }
                 ];
@@ -1234,7 +1330,7 @@
             }
 
             // -------------------------------------------------------------
-            // WATER QUOTA CALCULATION
+            // WATER QUOTA CALCULATION (Fix 3.4: 50,000 L Limit & Booking Pause)
             // -------------------------------------------------------------
             function getTodayWaterLiters() {
                 const today = getTodayDateString();
@@ -1249,9 +1345,13 @@
                 if (totalLiters >= DAILY_LIMIT_LITERS) {
                     waterDangerBanner.classList.add('visible');
                     waterSafeBar.classList.add('hidden');
+                    btnSubmitBooking.disabled = true;
+                    btnSubmitBooking.textContent = 'Daily limit reached — booking paused';
                 } else {
                     waterDangerBanner.classList.remove('visible');
                     waterSafeBar.classList.remove('hidden');
+                    btnSubmitBooking.disabled = false;
+                    btnSubmitBooking.textContent = 'Confirm Reservation';
                 }
             }
 
@@ -1275,7 +1375,60 @@
             }
 
             // -------------------------------------------------------------
-            // AUTO-COMPLETE EXPIRED SLOTS & MISSED SLOT DETECTION
+            // MISSED SLOT BANNER HELPER (Fix 3.1)
+            // -------------------------------------------------------------
+            function updateMissedSlotBanner() {
+                if (!missedSlotBanner) return;
+                // Find any booking marked as missed without a meter log
+                const missed = appState.bookings.slice().reverse().find(b => 
+                    b.status === 'missed' && !appState.meterLogs.some(m => m.booking_id === b.id)
+                );
+
+                if (missed) {
+                    const pump = appState.pumps.find(p => p.id === missed.pump_id);
+                    const pumpNum = pump ? pump.num : missed.pump_id;
+                    missedSlotBanner.textContent = `⚠ You have a missed slot — Pump ${pumpNum} on ${missed.booking_date} ${missed.slot}. Please log your meter reading or it will be flagged.`;
+                    missedSlotBanner.classList.add('visible');
+                    missedSlotBanner.onclick = () => {
+                        openMeterModal(missed);
+                    };
+                } else {
+                    missedSlotBanner.classList.remove('visible');
+                    missedSlotBanner.onclick = null;
+                }
+            }
+
+            // -------------------------------------------------------------
+            // PUMP FAILURE MID-SESSION STICKY ALERT HELPER (Fix 3.3)
+            // -------------------------------------------------------------
+            function updatePumpFailureAlert() {
+                if (!pumpFailureStickyAlert) return;
+                const today = getTodayDateString();
+                const now = new Date();
+                const curMin = now.getHours() * 60 + now.getMinutes();
+
+                // Check if any pump with active broken report had or has an active/interrupted session today
+                const brokenPumpWithSession = appState.pumps.find(p => {
+                    const brokenReport = getActiveBrokenReport(p.id);
+                    if (!brokenReport) return false;
+                    return appState.bookings.some(b => {
+                        if (b.pump_id !== p.id || b.booking_date !== today) return false;
+                        if (b.status === 'interrupted') return true;
+                        const { startMin, endMin } = parseSlotMinutes(b.slot);
+                        return curMin >= startMin && curMin < endMin;
+                    });
+                });
+
+                if (brokenPumpWithSession) {
+                    pumpFailureStickyAlert.textContent = `🚨 Pump ${brokenPumpWithSession.num} was just reported as broken during an active session. The current farmer has been notified. Please log your meter reading immediately.`;
+                    pumpFailureStickyAlert.classList.add('visible');
+                } else {
+                    pumpFailureStickyAlert.classList.remove('visible');
+                }
+            }
+
+            // -------------------------------------------------------------
+            // AUTO-COMPLETE EXPIRED SLOTS & MISSED SLOT DETECTION (Fix 3.1 & 3.3)
             // -------------------------------------------------------------
             function evaluateSlotStatuses() {
                 const today = getTodayDateString();
@@ -1289,28 +1442,48 @@
                     const isPastDay = b.booking_date < today;
                     const isToday = b.booking_date === today;
                     const isFutureDay = b.booking_date > today;
+                    const brokenReport = getActiveBrokenReport(b.pump_id);
 
-                    if (isPastDay || (isToday && curMin >= endMin)) {
-                        // Slot end time has passed
-                        if (hasMeterLog) {
-                            if (b.status !== 'completed') {
-                                b.status = 'completed';
-                                hasChanges = true;
-                            }
-                        } else {
-                            if (b.status !== 'missed') {
-                                b.status = 'missed';
-                                hasChanges = true;
-                            }
+                    // If water meter was logged, slot is completed
+                    if (hasMeterLog) {
+                        if (b.status !== 'completed') {
+                            b.status = 'completed';
+                            hasChanges = true;
                         }
-                    } else if (isToday && curMin >= startMin && curMin < endMin) {
-                        // Slot currently ongoing
-                        if (b.status !== 'active') {
-                            b.status = 'active';
+                        return;
+                    }
+
+                    // Pump failure mid-session: If pump is reported broken while booking is currently active (Fix 3.3)
+                    if (brokenReport && isToday && curMin >= startMin && curMin < endMin) {
+                        if (b.status !== 'interrupted') {
+                            b.status = 'interrupted';
+                            hasChanges = true;
+                        }
+                        return;
+                    }
+
+                    // If previously marked interrupted, keep it unless broken report is resolved
+                    if (b.status === 'interrupted') {
+                        if (!brokenReport) {
+                            if (isPastDay || (isToday && curMin >= endMin)) {
+                                b.status = 'missed';
+                            } else if (isToday && curMin >= startMin) {
+                                b.status = 'active';
+                            } else {
+                                b.status = 'upcoming';
+                            }
+                            hasChanges = true;
+                        }
+                        return;
+                    }
+
+                    // Missed slot: If a booking's start time has passed and no water meter reading was logged for it (Fix 3.1)
+                    if (isPastDay || (isToday && curMin >= startMin)) {
+                        if (b.status !== 'missed') {
+                            b.status = 'missed';
                             hasChanges = true;
                         }
                     } else if (isFutureDay || (isToday && curMin < startMin)) {
-                        // Slot in future
                         if (b.status !== 'upcoming') {
                             b.status = 'upcoming';
                             hasChanges = true;
@@ -1321,6 +1494,8 @@
                 if (hasChanges) {
                     saveState();
                 }
+                updateMissedSlotBanner();
+                updatePumpFailureAlert();
             }
 
             // -------------------------------------------------------------
@@ -1407,32 +1582,14 @@
             }
 
             // -------------------------------------------------------------
-            // SLOT AVAILABILITY & INLINE CONFLICT INDICATION
+            // SLOT AVAILABILITY (Fix 1: CLEAN AND UN-ANNOTATED LIST)
             // -------------------------------------------------------------
             function updateSlotAvailability() {
-                const chosenDate = bookingDateInput.value;
-                const chosenPump = selectedPumpId;
-
-                // Loop through options in slotSelect
+                // Keep all dropdown options enabled and clean. Never reveal other farmers' names or statuses.
                 Array.from(slotSelect.options).forEach((opt, idx) => {
                     if (idx === 0) return; // placeholder option
 
                     const slotVal = opt.value;
-                    let isBooked = false;
-                    let bookedFarmer = '';
-
-                    if (chosenPump && chosenDate) {
-                        const existing = appState.bookings.find(b => 
-                            b.pump_id === chosenPump && 
-                            b.booking_date === chosenDate && 
-                            b.slot === slotVal
-                        );
-                        if (existing) {
-                            isBooked = true;
-                            bookedFarmer = existing.farmer_name;
-                        }
-                    }
-
                     const baseText = slotVal + (slotVal.includes('06:00') ? ' (Early Morning)' :
                                                slotVal.includes('08:00') ? ' (Morning)' :
                                                slotVal.includes('10:00') ? ' (Midday)' :
@@ -1440,13 +1597,8 @@
                                                slotVal.includes('14:00') ? ' (Afternoon)' :
                                                slotVal.includes('16:00') ? ' (Late Afternoon)' : ' (Evening)');
 
-                    if (isBooked) {
-                        opt.disabled = true;
-                        opt.textContent = `${baseText} — [Booked: ${bookedFarmer}]`;
-                    } else {
-                        opt.disabled = false;
-                        opt.textContent = baseText;
-                    }
+                    opt.disabled = false;
+                    opt.textContent = baseText;
                 });
             }
 
@@ -1485,28 +1637,37 @@
                 const brokenReport = getActiveBrokenReport(chosenPumpId);
                 if (brokenReport) {
                     const pump = appState.pumps.find(p => p.id === chosenPumpId);
-                    showInlineError(`⚠ Pump ${pump ? pump.num : ''} is currently flagged as broken (reported by ${brokenReport.reporter_name}). Reservations are disabled.`);
+                    const pumpNum = pump ? pump.num : '';
+                    showInlineError(`⚠ Pump ${pumpNum} is currently flagged as broken (reported by ${brokenReport.reporter_name}). Reservations are disabled.`);
+                    showToast(`Pump ${pumpNum} is marked broken and cannot be booked`);
                     return;
                 }
 
-                // Check Daily Water Limit
-                if (chosenDate === getTodayDateString() && getTodayWaterLiters() >= DAILY_LIMIT_LITERS) {
-                    showInlineError('🚨 Daily community water limit of 50,000 L has been reached. No new extractions permitted today.');
+                // Check Daily Water Limit (Fix 3.4)
+                if (getTodayWaterLiters() >= DAILY_LIMIT_LITERS) {
+                    showInlineError('🚨 Daily community water limit of 50,000 L has been reached. Booking paused.');
+                    showToast('Daily limit reached — booking paused');
                     return;
                 }
 
-                // HARD CONFLICT PREVENTION CHECK
-                const conflict = appState.bookings.find(b => 
-                    b.pump_id === chosenPumpId && 
-                    b.booking_date === chosenDate && 
-                    b.slot === chosenSlot
-                );
+                // HARD CONFLICT / OVERLAP CHECK (Fix 1)
+                // Check if the selected pump + slot + date is already taken or overlaps with an existing booking
+                const { startMin: newStart, endMin: newEnd } = parseSlotMinutes(chosenSlot);
+                const conflict = appState.bookings.find(b => {
+                    if (b.pump_id !== chosenPumpId || b.booking_date !== chosenDate || b.status === 'cancelled') {
+                        return false;
+                    }
+                    const { startMin: existStart, endMin: existEnd } = parseSlotMinutes(b.slot);
+                    return newStart < existEnd && newEnd > existStart;
+                });
 
                 if (conflict) {
                     const pump = appState.pumps.find(p => p.id === chosenPumpId);
-                    const pumpTitle = pump ? `${pump.name} (Pump ${pump.num})` : 'Selected pump';
-                    showInlineError(`⚠ Conflict: ${pumpTitle} is already reserved for ${chosenSlot} on ${chosenDate} by ${conflict.farmer_name}. Please pick another slot or pump.`);
-                    updateSlotAvailability();
+                    const pumpNum = pump ? pump.num : chosenPumpId;
+                    const [timeStart, timeEnd] = conflict.slot.split(' - ').map(s => s.trim());
+                    const conflictMsg = `⛔ This slot is unavailable. Pump ${pumpNum} is already reserved from ${timeStart} to ${timeEnd} by another farmer. Please choose a different time.`;
+                    showToast(conflictMsg);
+                    showInlineError(conflictMsg);
                     return;
                 }
 
@@ -1549,40 +1710,38 @@
             }
 
             // -------------------------------------------------------------
-            // SCHEDULE TIMELINE RENDERING
+            // SCHEDULE TIMELINE RENDERING (Fix 2 & Fix 3.3)
             // -------------------------------------------------------------
             function renderSchedule() {
                 evaluateSlotStatuses();
                 updateDailyWaterBanner();
+                updatePumpFailureAlert();
+                updateMissedSlotBanner();
 
                 const today = getTodayDateString();
-                const now = new Date();
-                const curMinutes = now.getHours() * 60 + now.getMinutes();
 
                 timelineRowsContainer.innerHTML = '';
 
-                // Calculate current time line percentage across 06:00 to 20:00 (14 hours = 840 mins)
-                const startTimelineMin = 6 * 60;
-                const totalTimelineMin = 14 * 60;
-                let nowPct = null;
-                if (curMinutes >= startTimelineMin && curMinutes <= startTimelineMin + totalTimelineMin) {
-                    nowPct = ((curMinutes - startTimelineMin) / totalTimelineMin) * 100;
-                }
-
-                // Render each pump row
+                // Render each pump row (Fix 2: Red line/indicator ONLY on actively reported broken pumps)
                 appState.pumps.forEach(pump => {
                     const rowDiv = document.createElement('div');
                     rowDiv.className = 'timeline-row';
 
+                    const brokenReport = getActiveBrokenReport(pump.id);
+
                     const rowTitle = document.createElement('div');
                     rowTitle.className = 'timeline-row-title';
-                    rowTitle.textContent = `Pump ${pump.num} · ${pump.name}`;
+
+                    if (brokenReport) {
+                        rowDiv.classList.add('broken');
+                        rowTitle.innerHTML = `<span>Pump ${pump.num} · ${pump.name}</span><span class="pump-status-tag status-tag-broken" style="padding:1px 6px; font-size:10px; margin-left:6px;">🚨 Broken</span>`;
+                    } else {
+                        rowTitle.textContent = `Pump ${pump.num} · ${pump.name}`;
+                    }
                     rowDiv.appendChild(rowTitle);
 
                     const gridDiv = document.createElement('div');
                     gridDiv.className = 'timeline-slots-grid';
-
-                    const brokenReport = getActiveBrokenReport(pump.id);
 
                     STANDARD_SLOTS.forEach(slot => {
                         const block = document.createElement('div');
@@ -1599,9 +1758,11 @@
                             block.classList.add('broken');
                             block.innerHTML = '<span>Broken</span>';
                         } else if (booking) {
-                            // Booking status: upcoming, active, completed, missed
                             block.classList.add(booking.status);
-                            block.innerHTML = `<span>${booking.farmer_name}</span>`;
+                            const label = booking.status === 'interrupted' ? 'Interrupted' :
+                                          booking.status === 'missed' ? 'MISSED' :
+                                          booking.farmer_name;
+                            block.innerHTML = `<span>${label}</span>`;
                         } else {
                             block.innerHTML = '<span>Free</span>';
                         }
@@ -1613,13 +1774,7 @@
                     timelineRowsContainer.appendChild(rowDiv);
                 });
 
-                // Add Red Now Line if within timeline bounds
-                if (nowPct !== null) {
-                    const redLine = document.createElement('div');
-                    redLine.className = 'timeline-now-line';
-                    redLine.style.left = `${nowPct}%`;
-                    timelineRowsContainer.appendChild(redLine);
-                }
+                // Clean rows have zero red lines (Fix 2: global vertical red line eliminated)
 
                 // Render Reservations List for Today
                 renderReservationsList(today);
@@ -1648,19 +1803,25 @@
                     item.className = 'reservation-item';
 
                     let statusPill = '';
-                    if (booking.status === 'active') {
+                    if (booking.status === 'interrupted') {
+                        statusPill = `<span class="pump-status-tag" style="background:var(--danger-light); border:1px solid var(--danger); color:var(--danger); font-weight:700;">Interrupted</span>`;
+                    } else if (booking.status === 'active') {
                         statusPill = `<span class="pump-status-tag status-tag-busy">Active</span>`;
                     } else if (booking.status === 'completed') {
                         statusPill = `<span class="pump-status-tag" style="background:#E2DFD8; color:#554F44;">Completed</span>`;
                     } else if (booking.status === 'missed') {
-                        statusPill = `<span class="pump-status-tag" style="background:var(--accent-light); border:1px solid var(--accent); color:#C06B1C;">Missed</span>`;
+                        statusPill = `<span class="pump-status-tag" style="background:var(--accent-light); border:1px solid var(--accent); color:#C06B1C; font-weight:700;">MISSED</span>`;
                     } else {
                         statusPill = `<span class="pump-status-tag status-tag-available">Upcoming</span>`;
                     }
 
                     let meterActionHtml = '';
                     if (meterLog) {
-                        meterActionHtml = `<span class="pill-logged">✓ ${meterLog.liters.toLocaleString()} L Logged</span>`;
+                        if (meterLog.flagged || meterLog.liters > 8000) {
+                            meterActionHtml = `<span class="pill-logged" style="background:var(--accent-light); border:1px solid var(--accent); color:#B45309; font-weight:700;" title="Above 8,000 L single session limit">⚠ ${meterLog.liters.toLocaleString()} L Logged</span>`;
+                        } else {
+                            meterActionHtml = `<span class="pill-logged">✓ ${meterLog.liters.toLocaleString()} L Logged</span>`;
+                        }
                     } else {
                         meterActionHtml = `<button type="button" class="btn-log-meter" data-id="${booking.id}">Log Meter Reading</button>`;
                     }
@@ -1685,7 +1846,7 @@
             }
 
             // -------------------------------------------------------------
-            // METER READING MODAL & CALCULATIONS
+            // METER READING MODAL & CALCULATIONS (Fix 3.2: Excessive Warning)
             // -------------------------------------------------------------
             function openMeterModal(booking) {
                 activeMeterBooking = booking;
@@ -1697,12 +1858,18 @@
                 meterCalculatedLiters.textContent = '0 L';
                 meterErrorMsg.classList.remove('visible');
 
+                // Reset excessive warning box
+                excessiveWaterWarning.classList.remove('visible');
+                meterActionsNormal.style.display = 'flex';
+
                 modalLogMeter.classList.add('visible');
                 meterStartInput.focus();
             }
 
             function closeMeterModal() {
                 activeMeterBooking = null;
+                excessiveWaterWarning.classList.remove('visible');
+                meterActionsNormal.style.display = 'flex';
                 modalLogMeter.classList.remove('visible');
             }
 
@@ -1736,6 +1903,23 @@
                 }
 
                 const liters = end - start;
+
+                // Fix 3.2: Excessive water draw (> 8,000 L single-session limit)
+                if (liters > 8000) {
+                    excessiveWarningText.textContent = `⚠ You are logging ${liters.toLocaleString()} L for this session. This is above the normal single-session limit of 8,000 L. Are you sure?`;
+                    excessiveWaterWarning.classList.add('visible');
+                    meterActionsNormal.style.display = 'none';
+                    return;
+                }
+
+                saveMeterLog(liters, false);
+            }
+
+            function saveMeterLog(liters, isFlagged) {
+                if (!activeMeterBooking) return;
+                const start = parseFloat(meterStartInput.value);
+                const end = parseFloat(meterEndInput.value);
+
                 const newLog = {
                     id: 'ml_' + Date.now(),
                     booking_id: activeMeterBooking.id,
@@ -1745,20 +1929,27 @@
                     start_reading: start,
                     end_reading: end,
                     liters: liters,
+                    flagged: isFlagged,
                     timestamp: new Date().toISOString()
                 };
 
                 appState.meterLogs.push(newLog);
 
-                // If this slot was marked missed or expired, change to completed
-                if (activeMeterBooking.status === 'missed') {
-                    activeMeterBooking.status = 'completed';
-                }
+                // Slot is now completed
+                activeMeterBooking.status = 'completed';
 
                 saveState();
                 closeMeterModal();
+                evaluateSlotStatuses();
                 renderSchedule();
-                showToast(`✓ Logged ${liters.toLocaleString()} L of water`);
+                updateDailyWaterBanner();
+                updateMissedSlotBanner();
+
+                if (isFlagged) {
+                    showToast(`⚠ Logged ${liters.toLocaleString()} L (Flagged > 8,000 L)`);
+                } else {
+                    showToast(`✓ Logged ${liters.toLocaleString()} L of water`);
+                }
             }
 
             // -------------------------------------------------------------
@@ -1824,10 +2015,13 @@
                     if (btnResolve) {
                         btnResolve.addEventListener('click', () => {
                             report.status = 'resolved';
+                            report.resolved_at = new Date().toISOString();
                             saveState();
                             renderActiveReports();
                             renderPumpSelection();
+                            evaluateSlotStatuses();
                             renderSchedule();
+                            updatePumpFailureAlert();
                             showToast(isBroken ? '✓ Pump restored to active service' : '✓ Overrun alert resolved');
                         });
                     }
@@ -1859,6 +2053,23 @@
                 };
 
                 appState.reports.unshift(newReport);
+
+                // Fix 3.3: Pump failure mid-session check
+                const today = getTodayDateString();
+                const now = new Date();
+                const curMin = now.getHours() * 60 + now.getMinutes();
+
+                let interruptedBooking = null;
+                appState.bookings.forEach(b => {
+                    if (b.pump_id === pumpId && b.booking_date === today) {
+                        const { startMin, endMin } = parseSlotMinutes(b.slot);
+                        if (curMin >= startMin && curMin < endMin) {
+                            b.status = 'interrupted';
+                            interruptedBooking = b;
+                        }
+                    }
+                });
+
                 saveState();
 
                 brokenNotes.value = '';
@@ -1867,8 +2078,16 @@
 
                 renderActiveReports();
                 renderPumpSelection();
+                evaluateSlotStatuses();
                 renderSchedule();
-                showToast('⚠ Broken pump reported community-wide');
+                updatePumpFailureAlert();
+
+                const pump = appState.pumps.find(p => p.id === pumpId);
+                if (interruptedBooking) {
+                    showToast(`🚨 Pump ${pump ? pump.num : ''} reported broken during active session! Farmer notified.`);
+                } else {
+                    showToast('⚠ Broken pump reported community-wide');
+                }
             }
 
             function handleOverrunReportSubmit() {
@@ -1921,9 +2140,12 @@
                 } else if (targetTabId === 'tabBook') {
                     renderPumpSelection();
                     updateSlotAvailability();
+                    updateMissedSlotBanner();
                 } else if (targetTabId === 'tabReport') {
                     renderActiveReports();
                 }
+                updatePumpFailureAlert();
+                updateDailyWaterBanner();
             }
 
             // -------------------------------------------------------------
@@ -1936,7 +2158,7 @@
                 toastNotification.classList.add('visible');
                 toastTimeout = setTimeout(() => {
                     toastNotification.classList.remove('visible');
-                }, 2600);
+                }, 3600);
             }
 
             // -------------------------------------------------------------
@@ -1956,7 +2178,11 @@
                 populateReportSelects();
                 renderActiveReports();
                 updateSlotAvailability();
+                evaluateSlotStatuses();
                 renderSchedule();
+                updateDailyWaterBanner();
+                updateMissedSlotBanner();
+                updatePumpFailureAlert();
 
                 // Tab switching listeners
                 navButtons.forEach(btn => {
@@ -1998,10 +2224,24 @@
                 btnCancelMeterLog.addEventListener('click', closeMeterModal);
                 btnSubmitMeterLog.addEventListener('click', handleMeterLogSubmit);
 
+                // Excessive Water Warning listeners (Fix 3.2)
+                btnCancelExcessive.addEventListener('click', () => {
+                    excessiveWaterWarning.classList.remove('visible');
+                    meterActionsNormal.style.display = 'flex';
+                });
+                btnConfirmExcessive.addEventListener('click', () => {
+                    const start = parseFloat(meterStartInput.value);
+                    const end = parseFloat(meterEndInput.value);
+                    const liters = end - start;
+                    saveMeterLog(liters, true);
+                });
+
                 // 60-Second Background Interval for Auto-completing & Schedule Refresh
                 setInterval(() => {
                     evaluateSlotStatuses();
                     renderSchedule();
+                    updateMissedSlotBanner();
+                    updatePumpFailureAlert();
                 }, 60000);
             }
 
